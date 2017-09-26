@@ -1,9 +1,9 @@
-function createmocapfilestruct(ratname)
+function createmocapfilestruct(ratname,mocapmasterdirectory)
 
 
 if strcmp(ratname,'Vicon8')
 mocapfilestruct = struct('PreLesion',[],'UniLesion',[]);
-mocapfilestruct.mocapdir = 'E:\Bence\Data\Motionanalysis_captures\Vicon8\';
+mocapfilestruct.mocapdir = strcat(mocapmasterdirectory,ratname,filesep);%'E:\Bence\Data\Motionanalysis_captures\Vicon8\';
 mocapfilestruct.PreLesion.days = {'20170816\Generated_C3D_files\','20170817\Generated_C3D_files\','20170818\Generated_C3D_files\',...
     '20170820\Generated_C3D_files\',...
     '20170821\Generated_C3D_files\','20170822\Generated_C3D_files\','20170823\Generated_C3D_files\',... day7
@@ -32,7 +32,7 @@ end
 
 if strcmp(ratname,'JDM25')
 mocapfilestruct = struct('PreLesion',[],'UniLesion',[]);
-mocapfilestruct.mocapdir = 'E:\Bence\Data\Motionanalysis_captures\JDM25\';
+mocapfilestruct.mocapdir = strcat(mocapmasterdirectory,ratname,filesep);
 mocapfilestruct.PreLesion.days = {'20170913\Generated_C3D_files\','20170914\Generated_C3D_files\','20170915\Generated_C3D_files\',...
     '20170916\Generated_C3D_files\','20170917\Generated_C3D_files\','20170918\Generated_C3D_files\','20170919\Generated_C3D_files\','20170920\Generated_C3D_files\'};
 
@@ -57,7 +57,7 @@ end
 %% Vicon3 properties (more complicated)
 if strcmp(ratname,'Vicon3')
     
-       mocapdir = 'E:\Bence\Data\Motionanalysis_captures\Vicon3\';
+       mocapfilestruct.mocapdir = strcat(mocapmasterdirectory,ratname,filesep);
 
 mocapfilestruct = struct('early',[],'OneHand',[],'eighteenmarker',[],'eighteenmarkernoheadcap',[],'seventeen',[]);
 mocapfilestruct.mocapdir = 'E:\Bence\Data\Motionanalysis_captures\Vicon3\';

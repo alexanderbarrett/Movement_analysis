@@ -1,4 +1,4 @@
-% 
+% OLD OPTIONS FOR VISUALIZING DIFFERENT DATASETS
 % save_tag = 'Vicon8pre_task_prelesion';
 % plotdirectory = strcat(savedirectory,save_tag,filesep);
 % mkdir(plotdirectory)
@@ -51,17 +51,20 @@
 % [mocapstruct_6] = preprocess_mocap_data(mocapfilearray_6,mocapfilestruct.mocapdir);
 
 
-%% plotting directory
-savedirectory = 'E:\Bence\Data\MOCAP\regression_animations\';
+%% plotting directory -- change this
+%mocapmasterdirectory = 'E:\Bence\Data\Motionanalysis_captures\';
+mocapmasterdirectory = '\\140.247.178.37\Jesse\Motionanalysis_captures\';
+savedirectory = strcat(mocapmasterdirectory,'Plots',filesep);
+mkdir(savedirectory);
 
 %% load or create struct
-%createmocapfilestruct('JDM25')
-mocapfilestruct = loadmocapfilestruct('Vicon8');
+createmocapfilestruct('Vicon8',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
+mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
 
 %% get the desired files
 descriptor_struct_1 = struct();
 descriptor_struct_1.day = 5;
-descriptor_struct_1.tag = 'overnight1';
+descriptor_struct_1.tag = 'overnight15';
 descriptor_struct_1.cond = 'PreLesion';
 
 good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
@@ -109,7 +112,7 @@ plot_marker_characteristics(mocapstruct)
 %% do clustering
 cluster_here = [2];
     downsample = 3;
-savedirectory_subcluster = strcat(plotdirectory,filesep,'subclusterplots_',num2str(cluster_here));
+savedirectory_subcluster = strcat(mocapstruct.plotdirectory,filesep,'subclusterplots_',num2str(cluster_here));
 mkdir(savedirectory_subcluster);
 
 [modular_cluster_properties] = get_modularclustproperties(mocapstruct);
@@ -132,10 +135,10 @@ mkdir(savedirectory_subcluster);
    opts.num_clusters = 100;
    
    %% get clusters and metrics
-[cluster_struct_GMM] = Cluster_GMM(modular_cluster_properties.agg_features{cluster_here},opts,1:size(modular_cluster_properties.agg_features{cluster_here},2 ));
-cluster_struct_GMM.feature_labels = modular_cluster_properties.feature_labels{cluster_here};
-cluster_struct_GMM.clipped_index_agg = modular_cluster_properties.clipped_index{cluster_here};               
-  [cluster_struct_GMM] = clusterMetricsTodd_JDM(cluster_struct_GMM);
+[cluster_struct_spect] = Cluster_GMM(modular_cluster_properties.agg_features{cluster_here},opts,1:size(modular_cluster_properties.agg_features{cluster_here},2 ));
+cluster_struct_spect.feature_labels = modular_cluster_properties.feature_labels{cluster_here};
+cluster_struct_spect.clipped_index_agg = modular_cluster_properties.clipped_index{cluster_here};               
+  [cluster_struct_spect] = clusterMetricsTodd_JDM(cluster_struct_spect);
   
   %have to convert temporally 
   %cluster_struct_GMM=convert_cluster_GMM_struct(cluster_struct_GMM)
@@ -147,7 +150,7 @@ cluster_struct_GMM.clipped_index_agg = modular_cluster_properties.clipped_index{
   %% have to add other spectrogram features to get plots/movies
 
 figure(222)
-[n,x] = hist((cluster_struct_GMM.labels),opts.num_clusters);
+[n,x] = hist((cluster_struct_spect.labels),opts.num_clusters);
 bar(x,sort(n)./sum(n))
 set(gca,'YScale','log')
 ylabel('Cluster Frequency')
@@ -175,6 +178,7 @@ opts.params.maxF = 20; % max freq to analyze
 % for gmm model parameters
 opts.pcuse = 20;
 opts.num = 100;
+opts.numclusters = opts.num;
 opts.lambda = 0.1; % regularization
 clustering_ind = 1:downsample:size(modular_cluster_properties.agg_features{2},2);
 
@@ -182,8 +186,9 @@ cluster_struct_wavelet = WaveletCluster(modular_cluster_properties.agg_features{
               cluster_struct_wavelet.feature_labels = modular_cluster_properties.feature_labels{cluster_here};
                 cluster_struct_wavelet.clipped_index = modular_cluster_properties.clipped_index{cluster_here};
       [cluster_struct_wavelet] = clusterMetricsTodd_JDM(cluster_struct_wavelet);
+      
 do_movies=1;
-do_cluster_plots=1;
+do_cluster_plots=0;
                 plot_cluster_means_movies(savedirectory_subcluster,cluster_struct_wavelet,modular_cluster_properties.subcluster_names{cluster_here},...
                     mocapstruct.markers_preproc,do_movies,mocapstruct,do_cluster_plots) 
 

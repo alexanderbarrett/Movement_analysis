@@ -1,7 +1,7 @@
 
-function mocapfilestruct = loadmocapfilestruct(ratname)
+function mocapfilestruct = loadmocapfilestruct(ratname,mocapmasterdirectory)
 
-load(strcat('E:\Bence\Data\Motionanalysis_captures\',ratname,filesep,'mocapfilestruct_',ratname,'_.mat'))
+load(strcat(mocapmasterdirectory,ratname,filesep,'mocapfilestruct_',ratname,'_.mat'))
 
 filestruct_conds = fieldnames(mocapfilestruct);
 for ll = 1:numel(filestruct_conds)

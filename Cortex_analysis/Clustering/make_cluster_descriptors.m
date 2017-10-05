@@ -15,7 +15,9 @@ function make_cluster_descriptors(cluster_struct,feature_plot,savedirectory_subc
    [vals,inds] = sort(idx,'ASCEND');
    inds_labels_kmeans = [];
    for lk = 1:numel(inds)
-       inds_labels_kmeans = cat(1,inds_labels_kmeans,find(cluster_struct.labels==inds(lk)));
+       if numel(find(cluster_struct.labels==inds(lk)))
+       inds_labels_kmeans = cat(1,inds_labels_kmeans,reshape(find(cluster_struct.labels==inds(lk)),[],1));
+       end
    end
     
     

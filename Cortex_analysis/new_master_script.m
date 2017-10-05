@@ -58,17 +58,17 @@ savedirectory = strcat(mocapmasterdirectory,'Plots',filesep);
 mkdir(savedirectory);
 
 %% load or create struct
-createmocapfilestruct('Vicon8',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
+%createmocapfilestruct('Vicon8',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
 mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
 
 %% get the desired files
 descriptor_struct_1 = struct();
 descriptor_struct_1.day = 5;
-descriptor_struct_1.tag = 'overnight15';
+descriptor_struct_1.tag = 'overnight1';
 descriptor_struct_1.cond = 'PreLesion';
 
 good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
-mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(good_inds(1));
+mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(good_inds);
 
 %% either load  or preprocess from scratch
 [mocapstruct] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1);
@@ -93,17 +93,16 @@ plot_marker_characteristics(mocapstruct)
 
 %% EXAMPLE to visualize a simple portion of the trace
 % traceuse = mocapstruct.markers_preproc.HeadF(:,3);
-%    % params_clip.fps = fps;
-%    % [markers_clipped,clipped_index_here] = hipass_clip(markers_preproc,bad_frames_agg{1},params_clip);
-% %veluse = markers_clipped.HeadF(:,3);
-% %regionuse = 170000:174000;
-% %traceuse = traceuse(clipped_index_here);
-% figure(111)
-% plot(0:1./300:(numel(traceuse)-1)./300,traceuse)
-% xlabel('Time (s)')
-% ylabel('Head Z (mm)')
-% print('-dpng',strcat(plotdirectory,filesep,'head_vel_ex.png'))
-% 
+   params_clip.fps = mocapstruct.fps;
+   [markers_clipped,clipped_index_here] = hipass_clip(mocapstruct.markers_preproc,mocapstruct.bad_frames_agg{1},params_clip);
+traceuse = markers_clipped.SpineM(:,2);
+%regionuse = 170000:174000;
+figure(111)
+plot(0:1./300:(numel(traceuse)-1)./300,traceuse)
+xlabel('Time (s)')
+ylabel('Head Z (mm)')
+%print('-dpng',strcat(plotdirectory,filesep,'head_vel_ex.png'))
+
 % do_simple_analysis(traceuse(regionuse),veluse(regionuse),clipped_index_here(regionuse),'head',fps,markers_preproc,plotdirectory,markercolor,links)
 
 %% compute 
@@ -112,7 +111,7 @@ plot_marker_characteristics(mocapstruct)
 %% do clustering
 cluster_here = [2];
     downsample = 3;
-savedirectory_subcluster = strcat(mocapstruct.plotdirectory,filesep,'subclusterplots_',num2str(cluster_here));
+savedirectory_subcluster = strcat(mocapstruct.plotdirectory,filesep,'subclusterplots_',num2str(cluster_here),filesep);
 mkdir(savedirectory_subcluster);
 
 [modular_cluster_properties] = get_modularclustproperties(mocapstruct);
@@ -132,23 +131,25 @@ mkdir(savedirectory_subcluster);
    opts.fps = mocapstruct.fps;
    opts.num_pcs_1 = 50;
    opts.num_pcs_2 = 30;
-   opts.num_clusters = 100;
+   opts.num_clusters = 200;
    
    %% get clusters and metrics
 [cluster_struct_spect] = Cluster_GMM(modular_cluster_properties.agg_features{cluster_here},opts,1:size(modular_cluster_properties.agg_features{cluster_here},2 ));
 cluster_struct_spect.feature_labels = modular_cluster_properties.feature_labels{cluster_here};
 cluster_struct_spect.clipped_index_agg = modular_cluster_properties.clipped_index{cluster_here};               
-  [cluster_struct_spect] = clusterMetricsTodd_JDM(cluster_struct_spect);
+ % [cluster_struct_spect] = clusterMetricsTodd_JDM(cluster_struct_spect);
   
   %have to convert temporally 
   %cluster_struct_GMM=convert_cluster_GMM_struct(cluster_struct_GMM)
   
- % do_movies=1;
-%do_cluster_plots=1;
-    %              plot_cluster_means_movies(savedirectory_subcluster,cluster_struct_wavelet,modular_cluster_properties.subcluster_names{cluster_here},...
-
+  do_movies=1;
+do_cluster_plots=1;
+               plot_cluster_means_movies(savedirectory_subcluster,cluster_struct_spect,modular_cluster_properties,cluster_here,...
+mocapstruct.markers_preproc,do_movies,mocapstruct,do_cluster_plots) 
   %% have to add other spectrogram features to get plots/movies
+  make_cluster_descriptors(cluster_struct_spect,modular_cluster_properties.agg_features{cluster_here}(3,:),savedirectory_subcluster)
 
+  
 figure(222)
 [n,x] = hist((cluster_struct_spect.labels),opts.num_clusters);
 bar(x,sort(n)./sum(n))

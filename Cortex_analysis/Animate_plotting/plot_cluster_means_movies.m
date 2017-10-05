@@ -1,4 +1,4 @@
-function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,subcluster_name,markers_preproc,do_movies,mocapstruct,do_cluster_plots) 
+function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,modular_cluster_properties,cluster_here,markers_preproc,do_movies,mocapstruct,do_cluster_plots) 
 
  
     cluster_size = zeros(1,cluster_struct.num_clusters);
@@ -103,6 +103,9 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,subcl
             imagesc(1:size(feature_mu_reshape,3),cluster_struct.fr,squeeze(feature_mu_reshape(jjj,:,:)))
             set(gca,'XTick',1:3:3*size(feature_mu_reshape,3),'XTickLabels',cluster_struct.feature_labels);
             ylabel('frequency (Hz)')
+            ylim([0 50])
+                L = get(gca,'clim')
+            caxis([L(1)./3 L(2)./3])
             xlabel('Marker')
             title('Feature weights')
             print('-depsc',strcat(savedirectory_subcluster,'coeffweightsfor',num2str(save_ind),'.eps'))
@@ -120,11 +123,12 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,subcl
             
             figure(390)
             imagesc(cluster_struct.wtAll(find(cluster_struct.labels==jjj),:)')
-            caxis([0 0.1])
+           % caxis([0 0.1])
             set(gca,'YTick',1:3*numel(cluster_struct.fr):size(cluster_struct.wtAll,1),'YTickLabels',cluster_struct.feature_labels);
             xlabel('Time (frames at 100 fps)')
             title('Observed wavelet coeffs')
-            
+            L = get(gca,'clim')
+            caxis([L(1)./3 L(2)./3])
             print('-depsc',strcat(savedirectory_subcluster,'coeffplotsfor',num2str(save_ind),'.eps'))
             print('-dpng',strcat(savedirectory_subcluster,'coeffplotsfor',num2str(save_ind),'.png'))
         end
@@ -133,7 +137,7 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,subcl
         
         
         
-        dH = designfilt('highpassiir', 'FilterOrder', 3, 'HalfPowerFrequency', 1/(fps/2), ...
+        dH = designfilt('highpassiir', 'FilterOrder', 3, 'HalfPowerFrequency', 1/(mocapstruct.fps/2), ...
             'DesignMethod', 'butter');
         [f1,f2] = tf(dH);
 
@@ -154,8 +158,8 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,subcl
             num_rand = 40;
             marker_align = 3;%cluster_markersets{mmm}(1);
             markers_to_plot = [3]%,5*3,find(cluster_markersets{mmm} == 17)*3];
-            amt_extend_xcorr = 75; %in 3x downsample
-            amt_extend_plot = 80;
+            amt_extend_xcorr = 150; %in 3x downsample
+            amt_extend_plot = 10;
             num_clust_sample = min(pixellist.NumObjects,  num_rand );
             
             if num_clust_sample
@@ -176,7 +180,7 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,subcl
                     clusterind = unique(cluster_struct.clustering_ind(indexh));
                     clust_ind_here{lk}  =clusterind;
                     % abs_velocity_antialiased
-                    trace_add = agg_features(marker_align,(clusterind(1):clusterind(end)) )./num_clust_sample;
+                    trace_add = modular_cluster_properties.agg_features{cluster_here}(marker_align,(clusterind(1):clusterind(end)) )./num_clust_sample;
                     
                     
                     av_trace(1:min(length(trace_add), trace_length_here)) = av_trace(1:min(length(trace_add), trace_length_here))...
@@ -189,7 +193,7 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,subcl
                     av_trace = zeros(1,trace_length_here);
                     for lk =1:num_clust_sample
                         %[c,lags] =   xcorr(marker_velocity(marker_align,clust_ind_here{lk}(1):clust_ind_here{lk}(end) ,4),av_trace,amt_extend_xcorr);
-                        [c,lags] =   xcorr(agg_features(marker_align,clust_ind_here{lk}(1):clust_ind_here{lk}(end) ),av_trace,amt_extend_xcorr);
+                        [c,lags] =   xcorr(modular_cluster_properties.agg_features{cluster_here}(marker_align,clust_ind_here{lk}(1):clust_ind_here{lk}(end) ),av_trace,amt_extend_xcorr);
                         
                         [~,ind] = max(c);
                         %   lags(ind) = 0;
@@ -206,11 +210,11 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,subcl
                 y_gap = 3;
                 for mm = 1:numel(markers_to_plot)
                     figure(500+mm)
-                    velocity_size = size(abs_velocity_antialiased_hipass,2);
+                    velocity_size = size(modular_cluster_properties.agg_features{cluster_here},2);
                     for lk =1:min(pixellist.NumObjects,num_rand)
                         % subplot(2,numel(markers_to_plot)./2,mm)
                         %   subplot(1,1,mm)
-                        velocity_plot = y_gap*lk+agg_features(   markers_to_plot(mm), max(1,(clust_ind_here{lk}(1)-amt_extend_plot)):...
+                        velocity_plot = y_gap*lk+modular_cluster_properties.agg_features{cluster_here}(   markers_to_plot(mm), max(1,(clust_ind_here{lk}(1)-amt_extend_plot)):...
                             min(velocity_size,clust_ind_here{lk}(end)+amt_extend_plot));
                         
                         %                        position_plot = marker_position(   markers_to_plot(mm), max(1,(clust_ind_here{lk}(1)-amt_extend_plot)):...
@@ -223,7 +227,7 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,subcl
                         
                         hold on
                     end
-                    title(marker_names{floor(markers_to_plot(mm)./3)})
+                    title(mocapstruct.markernames{floor(markers_to_plot(mm)./3)})
                     box off
                     max_time_val = (clust_ind_here{lk}(end)+amt_extend_plot)-(clust_ind_here{lk}(1)-amt_extend_plot);
                     xtickshere = 1:25:max_time_val;
@@ -233,7 +237,7 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,subcl
                     xlabel('Time (ms)')
                     Lhere =  get(gca,'ylim');
                     %    ylim([0 20])
-                    ylim([-20 min(Lhere(2),120)])
+                    ylim([-10 max(30,min(Lhere(2),120))])
                     hold off
                 end
                 print(strcat(savedirectory_subcluster,'timetraces',num2str(save_ind),'.pdf'),'-dpdf','-bestfit')
@@ -250,8 +254,8 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,subcl
     end
     
     
-    clipped_clustering_ind = cluster_struct.clipped_index(cluster_struct.clustering_ind);
-    num_ex = 10;
+    clipped_clustering_ind = cluster_struct.clipped_index_agg(cluster_struct.clustering_ind);
+    num_ex = 20;
     if (do_movies)
         for jjj =  good_clusters_sorted(3:end)%1:end);%58;%36;%good_clusters(1:end)
             
@@ -272,7 +276,7 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,subcl
                 inst_label(cluster_struct.labels == jjj) = 1;
                 pixellist = bwconncomp(inst_label);
                 
-                indexh = unique(bsxfun(@plus,find(cluster_struct.labels == jjj),- amt_extend: amt_extend));
+                indexh = unique(bsxfun(@plus,reshape(find(cluster_struct.labels == jjj),[],1),- amt_extend: amt_extend));
                 indexh(indexh<1) = 1;
                 indexh(  indexh>numel(clipped_clustering_ind)) = numel(clipped_clustering_ind);
                 indexh= unique(indexh);
@@ -353,7 +357,7 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,subcl
                     frame_inds = 1:matlab_fr:min(frames_use_anim,numel( clusterind));
                     h=  figure(370)
                     movie_output_temp = animate_markers_clusteraligned(markers_preproc_cluster_aligned,markers_preproc_orig,frame_inds',...
-                        mocapstruct.markernames,mocapstruct.markercolor,mocapstruct.links,M,jjj,lk,h,subcluster_name );
+                        mocapstruct.markernames,mocapstruct.markercolor,mocapstruct.links,M,jjj,lk,h,modular_cluster_properties.subcluster_names{cluster_here} );
                     
                     % writeVideo(v,movie_output{jjj})
                     writeVideo(v,movie_output_temp)

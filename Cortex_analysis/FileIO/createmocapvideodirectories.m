@@ -18,7 +18,8 @@ if strcmp(ratname,'JDM25')
 mocapfilestruct = struct('PreLesion',[],'UniLesion',[]);
 mocapfilestruct.mocapdir = 'E:\Bence\Data\Motionanalysis_captures\JDM25\';
 mocapfilestruct.PreLesion.days = {'20170913\','20170914\','20170915\',...
-    '20170916\','20170917\','20170918\','20170919\','20170920\'};
+    '20170916\','20170917\','20170918\','20170919\','20170920\','20170921\','20170922\','20170923\'};
+mocapfilestruct.UniLesion.days = {'20170924\','20170925\','20170926\'};
 end
 
 

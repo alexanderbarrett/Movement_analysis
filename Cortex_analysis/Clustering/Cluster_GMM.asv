@@ -20,7 +20,7 @@ function [cluster_struct] = Cluster_GMM(agg_features,opts,frames)
 %         else
         
         for k=1:size(agg_features,1)
-            [~,fr,time_clustering,pc_spectrograms{k}] = spectrogram(agg_features(k,:),opts.clustering_window,opts.clustering_overlap,1:40,opts.fps);
+            [~,~,time_clustering,pc_spectrograms{k}] = spectrogram(agg_features(k,:),opts.clustering_window,opts.clustering_overlap,opts.fps,opts.fps);
           %  [~,~,time_clustering,pc_spectrograms{k}] = spectrogram(pc_traces(k,:),opts.clustering_window,opts.clustering_overlap,opts.fps,opts.fps);
             
 %         
@@ -33,7 +33,7 @@ function [cluster_struct] = Cluster_GMM(agg_features,opts,frames)
 %             [pc_spectrograms{k},f,scales] = findWavelets(agg_features(k,:)',20,parameters);
 %             pc_spectrograms{k} = pc_spectrograms{k}';
         end
-      %  fr = 0:opts.fps./2;
+        fr = 0:opts.fps./2;
         num_fr = numel(fr);
         agg_spectrograms = cell2mat(pc_spectrograms'); %second dimension is time base
         

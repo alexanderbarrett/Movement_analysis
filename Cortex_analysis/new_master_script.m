@@ -75,16 +75,12 @@ mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descripto
 
 %% can also load from saved data
 %[mocapstruct_load] = load_mocap_data(mocapfilearray,mocapfilestruct.mocapdir);
-
-
 comp_fraction_moving(mocapstruct)
-
 
 % plot fraction time missing
 plotfractionmissing(mocapstruct)
 
 plot_marker_characteristics(mocapstruct)
-
 %% code doesn't exist yet
 %do_task_analysis(mocapstruct)
 %compare_task(mocapstruct,mocapstruct_2);
@@ -95,7 +91,7 @@ plot_marker_characteristics(mocapstruct)
 % traceuse = mocapstruct.markers_preproc.HeadF(:,3);
    params_clip.fps = mocapstruct.fps;
    [markers_clipped,clipped_index_here] = hipass_clip(mocapstruct.markers_preproc,mocapstruct.bad_frames_agg{1},params_clip);
-traceuse = markers_clipped.SpineM(:,2);
+traceuse = markers_clipped.HeadF(:,2);
 %regionuse = 170000:174000;
 figure(111)
 plot(0:1./300:(numel(traceuse)-1)./300,traceuse)

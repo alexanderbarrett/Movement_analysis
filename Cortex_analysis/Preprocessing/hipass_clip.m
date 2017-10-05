@@ -19,7 +19,7 @@ pixellist = bwconncomp(inst_label);
 for mk = 1:numel(markernames)
     fprintf('Clipping marker %s \n',markernames{mk})
     for lk =1:pixellist.NumObjects
-        if (numel(pixellist.PixelIdxList{lk})>30)
+        if (numel(pixellist.PixelIdxList{lk})>30) % at least 100 ms consecutive good tracking
         for sk = 1:3
             marker_clipped.(markernames{mk})(pixellist.PixelIdxList{lk},sk) = ...
                 filtfilt(f1_hipass,f2_hipass,marker_clipped.(markernames{mk})(pixellist.PixelIdxList{lk},sk)-...
@@ -34,6 +34,10 @@ for mk = 1:numel(markernames)
     
     %% also remove the bad frames
 end
+
+%% interpolate across the bad frames
+
+
 for mk = 1:numel(markernames)
       marker_clipped.(markernames{mk})(inst_label == 0,:) = [];
 end

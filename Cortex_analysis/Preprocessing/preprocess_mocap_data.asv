@@ -73,16 +73,16 @@ for ll = 1:numel(marker_names)
 end
 
 
-[~,markers_preproc_aligned] = align_hands_elbows(markers_preproc,fps);
+[~,markers_aligned] = align_hands_elbows(markers,fps);
 
 
-% for ll = 1:numel(marker_names)
-%     fprintf('interpolating aligned markers \n')
-%     [temp,~] =markershortinterp((markers_preproc.(marker_names{ll})),100,5);
-%     % if numel(temp)
-%     markers_preproc_aligned.(marker_names{ll}) = temp;
-%     %  end
-% end
+for ll = 1:numel(marker_names)
+    fprintf('interpolating aligned markers \n')
+    [temp,~] =markershortinterp((markers_preproc.(marker_names{ll})),100,5);
+    % if numel(temp)
+    markers_preproc_aligned.(marker_names{ll}) = temp;
+    %  end
+end
 
 %% median filter the data to remove spikes
 fprintf('median filtering %f \n')

@@ -3,7 +3,7 @@ num_markers = size(marker_velocity,1);
 
 bad_frame_surround = fps./6;
 bad_frames_agg = cell(1,num_markers);
-bad_frame_velthresh = 20;
+bad_frame_velthresh = 15;
 for mm = 1:num_markers
     bad_1 = find(squeeze(marker_velocity(mm, :,4))>bad_frame_velthresh);
     [i3] = ind2sub(size(squeeze(marker_velocity(mm, :,4))),bad_1);

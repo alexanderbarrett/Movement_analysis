@@ -1,4 +1,4 @@
-function [markers, markers_aligned,cluster_mean_array,global_rotmatrix] = align_hands_elbows(markers,fps)
+function [markers, markers_aligned,cluster_mean_array,rotation_matrix] = align_hands_elbows(markers,fps)
 
 
 markers_aligned = struct();

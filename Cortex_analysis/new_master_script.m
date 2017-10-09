@@ -140,7 +140,8 @@ cluster_struct_spect.clipped_index_agg = modular_cluster_properties.clipped_inde
   
   do_movies=1;
 do_cluster_plots=1;
-               plot_cluster_means_movies(savedirectory_subcluster,cluster_struct_spect,modular_cluster_properties,cluster_here,...
+
+plot_cluster_means_movies(savedirectory_subcluster,cluster_struct_spect,modular_cluster_properties,cluster_here,...
 mocapstruct.markers_preproc,do_movies,mocapstruct,do_cluster_plots) 
   %% have to add other spectrogram features to get plots/movies
   make_cluster_descriptors(cluster_struct_spect,modular_cluster_properties.agg_features{cluster_here}(3,:),savedirectory_subcluster)

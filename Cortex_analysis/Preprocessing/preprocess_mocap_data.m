@@ -26,7 +26,7 @@ chunksize = 300*fps;
 %% touch up the arms so that the elbow to arm is pointed away from the body
 %because of elbow and arm swaps, also set to zero if only one of the limbs
 %is observed
-[markers,markers_aligned] = align_hands_elbows(markers,fps);
+[markers,markers_aligned,~,~] = align_hands_elbows(markers,fps);
 
 
 
@@ -73,7 +73,6 @@ for ll = 1:numel(marker_names)
 end
 
 
-[~,markers_preproc_aligned] = align_hands_elbows(markers_preproc,fps);
 
 
 % for ll = 1:numel(marker_names)
@@ -90,6 +89,11 @@ fprintf('median filtering %f \n')
 for ll = 1:numel(marker_names)
     markers_preproc.(marker_names{ll}) = medfilt2(markers_preproc.(marker_names{ll}),[3,1]);
 end
+
+
+%% get the preprocessed and aligned markrs
+[~,markers_preproc_aligned,mean_position,rotation_matrix] = align_hands_elbows(markers_preproc,fps);
+
 
 fraction_missing = zeros(1,numel(marker_names));
 for ll = 1:numel(marker_names)
@@ -173,6 +177,9 @@ mocap_struct.filestartpts = filestartpts;
 mocap_struct.markernames = marker_names;
 mocap_struct.fps = fps;
 mocap_struct.analog_fps = analog_fps;
+mocap_struct.aligned_rotation_matrix = rotation_matrix;
+mocap_struct.aligned_mean_position = mean_position;
+
 
 mocap_struct.markercolor = mocapfilestruct.(descriptor_struct.cond).markercolor{descriptor_struct.day};
 mocap_struct.links = mocapfilestruct.(descriptor_struct.cond).links{descriptor_struct.day};

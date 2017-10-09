@@ -19,8 +19,10 @@ function [cluster_struct] = Cluster_GMM(agg_features,opts,frames)
 %             fprintf('UH OH ERROR IN PCA \n')
 %         else
         
+freq_range = cat(2,0.5:0.5:20,21:1:40);
+
         for k=1:size(agg_features,1)
-            [~,fr,time_clustering,pc_spectrograms{k}] = spectrogram(agg_features(k,:),opts.clustering_window,opts.clustering_overlap,1:40,opts.fps);
+            [~,fr,time_clustering,pc_spectrograms{k}] = spectrogram(agg_features(k,:),opts.clustering_window,opts.clustering_overlap,freq_range,opts.fps);
           %  [~,~,time_clustering,pc_spectrograms{k}] = spectrogram(pc_traces(k,:),opts.clustering_window,opts.clustering_overlap,opts.fps,opts.fps);
             
 %         
@@ -37,12 +39,21 @@ function [cluster_struct] = Cluster_GMM(agg_features,opts,frames)
         num_fr = numel(fr);
         agg_spectrograms = cell2mat(pc_spectrograms'); %second dimension is time base
         
+        %% normalize the spectrograms
+        agg_spectrograms = log10(agg_spectrograms);
+        agg_spectrograms(isinf(agg_spectrograms)) = -20;
+         agg_spectrograms(isnan(agg_spectrograms)) = -20;
+         
         timebase = size(pc_spectrograms{1},2);
         
         frames_per_bin = floor(size(agg_features,2)./timebase);
         
         [coeff2,score2,latent2,tsquared2,explained2] = pca(agg_spectrograms(:,:)');
-        pca_agg_spectrogram = score2';
+        pca_agg_spectrogram =(score2');
+        
+        
+        fprintf('number of PCS2 %f size of agg spectrogram %f \n',opts.num_pcs_2,size(pca_agg_spectrogram,1));
+        opts.num_pcs_2 = min(size(pca_agg_spectrogram,1),opts.num_pcs_2);
         
         %% do a GMM clustering
         obj = fitgmdist((pca_agg_spectrogram(1:opts.num_pcs_2 ,:))',opts.num_clusters,...
@@ -107,6 +118,7 @@ end
                         
 cluster_struct = struct();
     cluster_struct.labels = labels_longer;
+    cluster_struct.labels_orig = labels;
     cluster_struct.num_clusters = length(unique(cluster_struct.labels));
         cluster_struct.num_clusters_req = opts.num_clusters;
 cluster_struct.wtAll = wtAll';

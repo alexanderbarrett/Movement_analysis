@@ -259,7 +259,7 @@ xdata = modular_cluster_properties.agg_features{cluster_here}(1:3,:); % this is 
 
 numplots2make = 15;
 
-for group = good_clusters_sorted(1:numplots2make)
+for group = good_clusters_sorted(50:(50+numplots2make))
 
 % plot all on top of each other
 %group = 127;
@@ -268,7 +268,7 @@ groupind = find(cluster_struct.labels==group);
 jumpind = find(diff(groupind) > 1); jumpind = [1 jumpind];
 
 % plot x,y,z
-h = figure; hold on;
+h = figure(560+group); hold on;
 for j = 1:length(jumpind)-1
     indrange = groupind(jumpind(j)+1 : jumpind(j+1)-1);
     if numel(indrange) < 3; continue; end;
@@ -283,7 +283,7 @@ xlabel('frame');
 
 % plot x and y
 subplot(3,2,[2 4]);hold on;
-for j = 1:15%length(jumpind)-1
+for j = 1:length(jumpind)-1
     indrange = groupind(jumpind(j)+1 : jumpind(j+1)-1);
     if numel(indrange) < 3; continue; end;
         
@@ -314,7 +314,7 @@ for j = 1:length(jumpind)-1
     if numel(indrange) < 3; continue; end;
     
     ytemp = autocorr(xdata(1,indrange));
-    ytemp = [ytemp nan(1,21 - length(ytemp))];
+    ytemp = [ytemp nan(1,51 - length(ytemp))];
     y(:,counter) = ytemp;
     counter = counter+1;
 end
@@ -322,11 +322,12 @@ end
 subplot(3,2,6); errorbar(nanmean(y,2), nanstd(y,[],2) / sqrt(size(y,2)));
 title('autocorrelation');
 
-suplabel([num2str([outP{:}]) ' group ' num2str(group)],'t');
+%suplabel([num2str([outP{:}]) ' group ' num2str(group)],'t');
+%suplabel([' group ' num2str(group)],'t');
 
 %savefig(h,[savedirectory_subcluster num2str(group) '.fig'])
 saveas(h,[savedirectory_subcluster num2str(group) '.png']);
-close(h);
+%close(h);
 
 end
         

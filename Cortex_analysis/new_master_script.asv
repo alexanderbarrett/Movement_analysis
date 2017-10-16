@@ -59,18 +59,15 @@ ylabel('Head Z (mm)')
 
 
 %% do clustering
-num_subclusters = 7;
-   cluster_struct_spect_agg = cell(1,num_subclusters);
-
-cluster_here = [7];
-    downsample = 7;
+cluster_here = [1];
+    downsample = 3;
 savedirectory_subcluster = strcat(mocapstruct.plotdirectory,filesep,'subclusterplots_',num2str(cluster_here),filesep);
 mkdir(savedirectory_subcluster);
 
 [modular_cluster_properties] = get_modularclustproperties(mocapstruct);
 
 %% the clipped index is the index of clipped frames in the full trace
-[modular_cluster_properties] = get_clustering_features(mocapstruct,modular_cluster_properties,cluster_here)  ;
+[modular_cluster_properties] = get_clustering_features(mocapstruct,modular_cluster_properties,2)  ;
 
     %% first compute the eigenposes to look for postural differences
       %% look at the eigenposes of the data
@@ -89,14 +86,12 @@ mkdir(savedirectory_subcluster);
    opts.num_pcs_2 = 30;
    opts.num_clusters = 200;
    
-   
    %% get clusters and metrics
 [cluster_struct_spect] = Cluster_GMM(modular_cluster_properties.agg_features{cluster_here},opts,1:size(modular_cluster_properties.agg_features{cluster_here},2 ));
 cluster_struct_spect.feature_labels = modular_cluster_properties.feature_labels{cluster_here};
 cluster_struct_spect.clipped_index_agg = modular_cluster_properties.clipped_index{cluster_here};               
  % [cluster_struct_spect] = clusterMetricsTodd_JDM(cluster_struct_spect);
-    cluster_struct_spect_agg{cluster_here} = cluster_struct_spect;
-
+  
    %% look at the t-sne embedding of the feature
   num_tsne_timepoints = 30000;
  % plot_tsne(cluster_struct_spect.wtAll,num_tsne_timepoints,cluster_struct_spect.labels);
@@ -106,7 +101,7 @@ cluster_struct_spect.clipped_index_agg = modular_cluster_properties.clipped_inde
   %cluster_struct_GMM=convert_cluster_GMM_struct(cluster_struct_GMM)
   
   do_movies=1;
-do_cluster_plots=10;
+do_cluster_plots=1;
 
 plot_cluster_means_movies(savedirectory_subcluster,cluster_struct_spect,modular_cluster_properties,cluster_here,...
 mocapstruct.markers_preproc,do_movies,mocapstruct,do_cluster_plots) 

@@ -1,4 +1,4 @@
-function plot_marker_characteristics(mocapstruct)
+function plot_marker_characteristics_timerange(mocapstruct,timerange)
 
 fps= mocapstruct.fps;
 
@@ -23,7 +23,7 @@ marker_here.singlemarker = mocapstruct.markers_preproc.(mocapstruct.markernames{
 
 
 params.fps = fps;
-[marker_clipped,clipped_index] = hipass_clip(marker_here,cat(2,mocapstruct.bad_frames_agg{ll},mocapstruct.rest_frames),params);
+[marker_clipped,clipped_index] = hipass_clip(marker_here,cat(2,mocapstruct.bad_frames_agg{ll},timerange),params);
 
 
 
@@ -37,7 +37,7 @@ xlim([1 50])
 ylabel('SP ')
 xlabel('Freq')
 title(mocapstruct.markernames{ll})
-print('-dpng',strcat(mocapstruct.plotdirectory,'MarkerPSDs_move.png'))
+print('-dpng',strcat(mocapstruct.plotdirectory,'MarkerPSDs_move_tr.png'))
 
 %xlim([3.910*10^6/300 3.950*10^6/300])
 
@@ -74,50 +74,9 @@ xval_agg{ll} = ll.*ones(1,numel(marker_velocity));
     xlim([0 10])
     xlabel('Marker Velociy [mm/frame]')
     ylabel('Fraction of bins')
-  print('-dpng',strcat(mocapstruct.plotdirectory,'MarkerVelocities_move.png'))
+  print('-dpng',strcat(mocapstruct.plotdirectory,'MarkerVelocities_move_tr.png'))
 
 
-  
-%% also look at rest
-params.fps = fps;
-[marker_clipped,clipped_index] = hipass_clip(marker_here,cat(2,mocapstruct.bad_frames_agg{ll},mocapstruct.move_frames),params);
-
-[Pxx,fxx] = pwelch(marker_clipped.singlemarker(:,3),fps*5,floor(0.5*fps),fps*5,fps,'onesided');
-
-figure(600)
-subplot_tight(subplot_row,subplot_cols,ll)
-plot(fxx,log10(Pxx))
-xlim([1 50])
-ylabel('SP ')
-xlabel('Freq')
-title(mocapstruct.markernames{ll})
-%print('-dpng',strcat(mocapstruct.plotdirectory,'MarkerPSDs_move.png'))
-  
-
-%% plot the marker velocity
-%marker_velocity = diff(marker_clipped.singlemarker(:,x),6).^2,jj);
-veltemp =  diff(marker_clipped.singlemarker(:,1),6).^2;
-for jj = 2:3
-    veltemp = veltemp+diff(marker_clipped.singlemarker(:,jj),6).^2;
-end
-marker_velocity = sqrt(veltemp./3);
-marker_velocity_agg{ll} = marker_velocity;
-xval_agg{ll} = ll.*ones(1,numel(marker_velocity));
-
-  figure(700)
- subplot_tight(subplot_row,subplot_cols,ll)
-
-    [n,x] = hist( marker_velocity,0:0.1:10);
-    bar(x,log10(n),'b');
-%     hold on
-%     [n2,x2] = hist(marker_velocity,0:0.1:5);
-%     bar(x2,log10(n2),'r');
-%     hold off
- title(mocapstruct.markernames{ll})
-    xlim([0 10])
-    xlabel('Marker Velociy [mm/frame]')
-    ylabel('Fraction of bins')
-  %print('-dpng',strcat(mocapstruct.plotdirectory,'MarkerVelocities_move.png'))
   
 end
 

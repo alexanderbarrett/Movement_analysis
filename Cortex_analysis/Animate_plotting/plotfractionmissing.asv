@@ -59,20 +59,6 @@ ylim([0 0.5])
 xlim([0 numel(marker_names)+1])
 print('-dpng',strcat(mocapstruct.plotdirectory,'MarkerTracking_rest.png'))
 
-
-figure(565)
-bar(fraction_missing_rest_nolong)
-box off
-set(gca,'XTick',1:numel(marker_names),'XTickLabels',marker_names)
-rotateXLabels(gca,45)
-xlabel('Marker')
-ylabel('Fraction of time missing')
-title('Rest')
-ylim([0 0.5])
-xlim([0 numel(marker_names)+1])
-
-
-
 figure(556)
 bar(fraction_missing_move)
 box off
@@ -85,21 +71,6 @@ title('Move')
 ylim([0 0.5])
 xlim([0 numel(marker_names)+1])
 print('-dpng',strcat(mocapstruct.plotdirectory,'MarkerTracking_move.png'))
-
-
-
-figure(566)
-bar(fraction_missing_move_nolong)
-box off
-set(gca,'XTick',1:numel(marker_names),'XTickLabels',marker_names)
-rotateXLabels(gca,45)
-xlabel('Marker')
-ylabel('Fraction of time missing')
-title('Move')
-
-ylim([0 0.5])
-xlim([0 numel(marker_names)+1])
-print('-dpng',strcat(mocapstruct.plotdirectory,'MarkerTracking_move_nolong.png'))
 
 
 

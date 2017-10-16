@@ -23,12 +23,12 @@ meanstruct = struct('meanpos',mocapstruct.aligned_mean_position,'anglematrix',re
     feature_labels = mocapstruct.markernames;
     feature_labels = feature_labels((modular_cluster_properties.cluster_markersets{modno}));
     
-    if (~isfield('modular_cluster_properties',clipped_index))
-    modular_cluster_properties.agg_features = cell(1,numel(modular_cluster_properties.badframe_inds_agg));
-    modular_cluster_properties.clipped_index = cell(1,numel(modular_cluster_properties.badframe_inds_agg));
-        modular_cluster_properties.feature_labels = cell(1,numel(modular_cluster_properties.badframe_inds_agg));
-                modular_cluster_properties.meanstruct_clipped = cell(1,numel(modular_cluster_properties.badframe_inds_agg));
-    end
+%     if (~isfield('modular_cluster_properties',clipped_index))
+%     modular_cluster_properties.agg_features = cell(1,numel(modular_cluster_properties.badframe_inds_agg));
+%     modular_cluster_properties.clipped_index = cell(1,numel(modular_cluster_properties.badframe_inds_agg));
+%         modular_cluster_properties.feature_labels = cell(1,numel(modular_cluster_properties.badframe_inds_agg));
+%                 modular_cluster_properties.meanstruct_clipped = cell(1,numel(modular_cluster_properties.badframe_inds_agg));
+%     end
     modular_cluster_properties.agg_features{modno} = agg_features;
     modular_cluster_properties.clipped_index{modno} = clipped_index;
     modular_cluster_properties.feature_labels{modno} = feature_labels;

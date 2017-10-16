@@ -19,8 +19,8 @@ mocapfilestruct = struct('PreLesion',[],'UniLesion',[]);
 mocapfilestruct.mocapdir = 'E:\Bence\Data\Motionanalysis_captures\JDM25\';
 mocapfilestruct.PreLesion.days = {'20170913\','20170914\','20170915\',...
     '20170916\','20170917\','20170918\','20170919\','20170920\','20170921\','20170922\','20170923\'};
-mocapfilestruct.UniLesion.days = {'20170924\','20170925\','20170926\','20170927\','20170928\','20170929\','20171002\','20171003\'};
-mocapfilestruct.BiLesion.days = {'20171004\','20171005\','20171006\','20171007\','20171008\','20171009\','20171010\','20171011\','20171012\','20171013\'};
+mocapfilestruct.UniLesion.days = {'20170924\','20170925\','20170926\','20170927\','20170928\','20170929\','20171002\','20170929\'};
+mocapfilestruct.BiLesion.days = {'20170924\','20170925\','20170926\'};
 
 end
 
@@ -121,7 +121,6 @@ end
   videosourcehere = strcat(videopathFolder,filesep,nameFolds(folderind));
   outputfolder = strcat(outputdir,filesep,nameFolds(folderind));
   if (~exist(outputfolder{1},'dir'))
-      fprintf('Making output directory for day %f condition %f \n',jj,ll)
   mkdir(outputfolder{1});
   copyfile(videosourcehere{1},outputfolder{1})
   end

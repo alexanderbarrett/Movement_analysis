@@ -21,11 +21,7 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,modul
         save_tags{kk} = save_tags_temp(kk,:);
     end
     
-%
-    %                if (save_movie)
-    %
-    %
-    %             end
+   
     feature_mu_reshape = reshape(cluster_struct.feature_mu,size(cluster_struct.feature_mu,1),numel(cluster_struct.fr),[]);
     
     x_ind = size(feature_mu_reshape,2);
@@ -100,7 +96,7 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,modul
             figure(380)
             %subplot(1,2,1)
             
-            imagesc(1:size(feature_mu_reshape,3),cluster_struct.fr,squeeze(feature_mu_reshape(jjj,:,:)))
+            uimagesc(1:size(feature_mu_reshape,3),cluster_struct.fr,squeeze(feature_mu_reshape(jjj,:,:)))
             set(gca,'XTick',1:3:3*size(feature_mu_reshape,3),'XTickLabels',cluster_struct.feature_labels);
             ylabel('frequency (Hz)')
             ylim([0 50])
@@ -143,7 +139,7 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,modul
         %        abs_velocity_antialiased_hipass(mm,:)  = filtfilt(f1,f2,squeeze(marker_position(mm,:,3)));
         %    end
         
-        for jjj =good_clusters_sorted(1:end)%1:end);%58;%36;%good_clusters(1:end)
+        for jjj =good_clusters_sorted(1)%:end)%1:end);%58;%36;%good_clusters(1:end)
             
             
             save_ind = find(good_clusters_sorted(1:end)== jjj);
@@ -191,7 +187,8 @@ function plot_cluster_means_movies(savedirectory_subcluster,cluster_struct,modul
                     av_trace = zeros(1,trace_length_here);
                     for lk =1:num_clust_sample
                         %[c,lags] =   xcorr(marker_velocity(marker_align,clust_ind_here{lk}(1):clust_ind_here{lk}(end) ,4),av_trace,amt_extend_xcorr);
-                        [c,lags] =   xcorr(modular_cluster_properties.agg_features{cluster_here}(marker_align,clust_ind_here{lk}(1):clust_ind_here{lk}(end) ),av_trace,amt_extend_xcorr);
+                        [c,lags] =   xcorr(modular_cluster_properties.agg_features{cluster_here}...
+                            (marker_align,clust_ind_here{lk}(1):clust_ind_here{lk}(end) ),av_trace,amt_extend_xcorr);
                         
                         [~,ind] = max(c);
                         %   lags(ind) = 0;
@@ -259,7 +256,7 @@ xdata = modular_cluster_properties.agg_features{cluster_here}(1:3,:); % this is 
 
 numplots2make = 15;
 
-for group = good_clusters_sorted(1:numplots2make)
+for group = good_clusters_sorted(1:end)
 
 % plot all on top of each other
 %group = 127;
@@ -268,7 +265,7 @@ groupind = find(cluster_struct.labels==group);
 jumpind = find(diff(groupind) > 1); jumpind = [1 jumpind];
 
 % plot x,y,z
-h = figure; hold on;
+h = figure(560+group); hold on;
 for j = 1:length(jumpind)-1
     indrange = groupind(jumpind(j)+1 : jumpind(j+1)-1);
     if numel(indrange) < 3; continue; end;
@@ -283,7 +280,7 @@ xlabel('frame');
 
 % plot x and y
 subplot(3,2,[2 4]);hold on;
-for j = 1:15%length(jumpind)-1
+for j = 1:length(jumpind)-1
     indrange = groupind(jumpind(j)+1 : jumpind(j+1)-1);
     if numel(indrange) < 3; continue; end;
         
@@ -314,7 +311,7 @@ for j = 1:length(jumpind)-1
     if numel(indrange) < 3; continue; end;
     
     ytemp = autocorr(xdata(1,indrange));
-    ytemp = [ytemp nan(1,21 - length(ytemp))];
+    ytemp = [ytemp nan(1,51 - length(ytemp))];
     y(:,counter) = ytemp;
     counter = counter+1;
 end
@@ -322,11 +319,12 @@ end
 subplot(3,2,6); errorbar(nanmean(y,2), nanstd(y,[],2) / sqrt(size(y,2)));
 title('autocorrelation');
 
-suplabel([num2str([outP{:}]) ' group ' num2str(group)],'t');
+%suplabel([num2str([outP{:}]) ' group ' num2str(group)],'t');
+%suplabel([' group ' num2str(group)],'t');
 
 %savefig(h,[savedirectory_subcluster num2str(group) '.fig'])
 saveas(h,[savedirectory_subcluster num2str(group) '.png']);
-close(h);
+%close(h);
 
 end
         
@@ -334,7 +332,7 @@ end
     
     
     clipped_clustering_ind = cluster_struct.clipped_index_agg(cluster_struct.clustering_ind);
-    num_ex = 3;
+    num_ex = 15;
     if (do_movies)
         for jjj =  good_clusters_sorted(1:end)%1:end);%58;%36;%good_clusters(1:end)
             

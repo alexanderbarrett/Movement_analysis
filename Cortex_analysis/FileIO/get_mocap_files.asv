@@ -1,0 +1,93 @@
+% save_tag = 'Vicon8pre_task_prelesion';
+% plotdirectory = strcat(savedirectory,save_tag,filesep);
+% mkdir(plotdirectory)
+% 
+% %create second as well
+function [descriptor_struct_1,mocapfilearray,mocapfilestruct] = get_mocap_files(rat,save_tag)
+
+
+switch rat
+    case 'Vicon8'
+mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
+    case 'JDM25'
+mocapfilestruct = loadmocapfilestruct('JDM25',mocapmasterdirectory);
+end
+
+%% get the desired files
+descriptor_struct_1 = struct();
+
+
+good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
+mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(good_inds(1));
+
+switch save_tag
+    case 'Vicon8_prelesion'
+   descriptor_struct_1.day = 5;
+descriptor_struct_1.tag = 'overnight1';
+descriptor_struct_1.cond = 'PreLesion';
+
+good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
+mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(good_inds);
+     
+
+    case 'Vicon8_caff'
+descriptor_struct_1.tag = 'caff';
+descriptor_struct_1.cond = 'PreLesion';
+   descriptor_struct_1.day = 6;
+
+good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
+mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(good_inds);
+ 
+    case 'Vicon8_amph'
+        descriptor_struct_1.tag = 'caff';
+descriptor_struct_1.cond = 'PreLesion';
+   descriptor_struct_1.day = 6;
+% goodinds_3 = find(cellfun(@numel,strfind(mocapfilestruct.PreLesion.mocapfiles{7},'amph')));
+% mocapfilearray_3 = mocapfilestruct.PreLesion.mocapfiles{7}(goodinds_3);
+% 
+ case 'Vicon8_dlslesion_early'
+     
+% goodinds_4 = find(cellfun(@numel,strfind(mocapfilestruct.UniLesion.mocapfiles{2},'overnight_two1')));
+% mocapfilearray_4 = mocapfilestruct.UniLesion.mocapfiles{2}(goodinds_4);
+      case 'Vicon8_veh'
+          
+% goodinds_5 = find(cellfun(@numel,strfind(mocapfilestruct.PreLesion.mocapfiles{5},'veh')));
+% mocapfilearray_5 = mocapfilestruct.PreLesion.mocapfiles{5}(goodinds_5);
+% 
+           case 'JDM25pre'
+
+% goodinds_6 = find(cellfun(@numel,strfind(mocapfilestruct.PreLesion.mocapfiles{6},'overnight1')));
+% mocapfilearray_6 = mocapfilestruct.PreLesion.mocapfiles{6}(goodinds_6);
+
+
+% save_tag = 'Vicon8_caff';
+% plotdirectory2 = strcat(savedirectory,save_tag,filesep);
+% mkdir(plotdirectory2)
+% 
+% %create second as well
+% save_tag = 'Vicon8_amph';
+% plotdirectory3 = strcat(savedirectory,save_tag,filesep);
+% mkdir(plotdirectory3)
+% 
+% save_tag = 'Vicon8_dlslesion_early';
+% plotdirectory4 = strcat(savedirectory,save_tag,filesep);
+% mkdir(plotdirectory4)
+% 
+% save_tag = 'Vicon8_veh';
+% plotdirectory5 = strcat(savedirectory,save_tag,filesep);
+% mkdir(plotdirectory5)
+% 
+% save_tag = 'JDM25pre';
+% plotdirectory6 = strcat(savedirectory,save_tag,filesep);
+% mkdir(plotdirectory6)
+% 
+% 
+% 
+
+
+% 
+% [mocapstruct_2] = preprocess_mocap_data(mocapfilearray_2,mocapfilestruct.mocapdir);
+% [mocapstruct_3] = preprocess_mocap_data(mocapfilearray_3,mocapfilestruct.mocapdir);
+% [mocapstruct_4] = preprocess_mocap_data(mocapfilearray_4,mocapfilestruct.mocapdir);
+% [mocapstruct_6] = preprocess_mocap_data(mocapfilearray_6,mocapfilestruct.mocapdir);
+

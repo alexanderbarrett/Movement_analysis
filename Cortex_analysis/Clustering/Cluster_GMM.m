@@ -18,12 +18,71 @@ function [cluster_struct] = Cluster_GMM(agg_features,opts,frames)
 %         if ~size(score,2)
 %             fprintf('UH OH ERROR IN PCA \n')
 %         else
-        
-freq_range = cat(2,0.5:0.5:20,21:1:40);
+
+%scales = helperCWTTimeFreqVector(minfreq,maxfreq,f0,dt,NumVoices)
+wname = 'gaus1';
+dt = 0.01;
+downample = 3;
+waveinfo(wname)
+f0 = centfrq(wname);
+minfreq = 0.5;
+minscale = f0./(minfreq*dt);
+s0 = minscale*dt;
+numVoices = 10;
+numOctave = 6;
+a0 = 2^(1/numVoices);
+scales = s0*a0.^(0:numOctave*numVoices);
+
+
+%f0 = centfrq(wname);
+%s = 0.02:0.5:31;
+Freq = scal2frq(scales,wname,dt);
+f = f0./(scales*dt);
+
+% 
+%   wavepower = conv2(log(abs(cfs)),[1 ones(1,10)./10],'same');
+%   wavepower = log10(abs(cfs));
+%   figure(11)
+%   ax1 = subplot(2,1,1);
+%   imagesc(1:3:500000,frequencies,wavepower)
+% 
+% ax2 = subplot(2,1,2);
+% plot(1:3:500000,agg_features(k,1:3:500000))
+% linkaxes([ax1,ax2],'x');
+% 
+pc_spectrograms = cell(1,size(agg_features,1));
 
         for k=1:size(agg_features,1)
-            [~,fr,time_clustering,pc_spectrograms{k}] = spectrogram(agg_features(k,:),opts.clustering_window,opts.clustering_overlap,freq_range,opts.fps);
-          %  [~,~,time_clustering,pc_spectrograms{k}] = spectrogram(pc_traces(k,:),opts.clustering_window,opts.clustering_overlap,opts.fps,opts.fps);
+          %  freq_range = 0.5:0.5:50;
+            
+%             
+                                    fprintf('starting multiresolution spectrogram for feature %f \n',k);
+                                    fr = [];
+                                    freq_rev = fliplr(Freq);
+                                    for mm =1:numOctave
+                                        freq_subset = freq_rev(1+(mm-1)*numVoices:(mm)*numVoices);
+                                        freq_delta_here = (max(freq_subset)-min(freq_subset))./numVoices;
+                                        freq_range_here = min(freq_subset):freq_delta_here:max(freq_subset);
+                                   %      freq_range_here
+ [~,fr_temp,time_clustering,pc_spectrograms_temp] = spectrogram(agg_features(k,:),opts.clustering_window,...
+     opts.clustering_overlap,freq_range_here,opts.fps);
+          pc_spectrograms{k} =   cat(1,pc_spectrograms{k},pc_spectrograms_temp);
+          fr = cat(1,fr,fr_temp);
+                                    end
+                                    figure(44)
+                                  %  uimagesc(1:size(pc_spectrograms{36},2),fr,log10(pc_spectrograms{36}))
+                                    
+%            
+%                        fprintf('starting wavelet for feature %f \n',k);
+%                        tic 
+%            time_clustering = 1:3:min(size(agg_features,2),1000000);
+%               [pc_spectrograms{k},~,fr] =   cwt(agg_features(k,time_clustering),scales,wname,0.01,'scal'); 
+%             pc_spectrograms{k} = abs(pc_spectrograms{k});
+%             toc
+%             
+%             
+            
+            %  [~,~,time_clustering,pc_spectrograms{k}] = spectrogram(pc_traces(k,:),opts.clustering_window,opts.clustering_overlap,opts.fps,opts.fps);
             
 %         
 %             parameters.numPeriods = 50;

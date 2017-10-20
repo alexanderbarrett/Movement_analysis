@@ -15,7 +15,6 @@ function eigenpose = compare_eigenposes(mocapstruct,modular_cluster_properties,m
     pose_mean = mean(agg_pose_features,2);
     pose_std = std(agg_pose_features,[],2);
     
-    h=figure;
     
     %% repeat for second side
      agg_pose_features2 = [];%cat(1,squeeze(marker_velocity(:,1:frame_length_here,4)));  
@@ -28,34 +27,40 @@ function eigenpose = compare_eigenposes(mocapstruct,modular_cluster_properties,m
     
     %% run SVD
   [U,S,V2] = svd(agg_pose_features2(:,clustering_ind_2_2)', 'econ');
-    pose_mean = mean(agg_pose_features2,2);
-    pose_std = std(agg_pose_features2,[],2);
+    pose_mean2 = mean(agg_pose_features2,2);
+    pose_std2 = std(agg_pose_features2,[],2);
     
     h=figure;
     
 %% compare over markers
-    for ll = 1:20
+    for ll = 1:min([20,size(V,2),size(V2,2)])
 eigenpose = reshape(pose_mean+pose_std.*V(:,ll),3,[]);
 eigenpose2 = reshape(pose_mean2+pose_std2.*V2(:,ll),3,[]);
 
 hold on
+C_1    = cell(1, numel(mocapstruct.markercolor));
+C_1(:) = {'w'};
 
+C_2    = cell(1, numel(mocapstruct2.markercolor));
+C_2(:) = {'r'};
 %subplot(5,4,ll)
-plot_eigenpose_subset(eigenpose',modular_cluster_properties.cluster_markersets{modno},mocapstruct.markercolor,mocapstruct.links,h)
+
+
+plot_eigenpose_subset(eigenpose',modular_cluster_properties.cluster_markersets{modno},C_1,mocapstruct.links,h)
 hold on
-plot_eigenpose_subset2(eigenpose2',modular_cluster_properties2.cluster_markersets{modno},mocapstruct.markercolor,mocapstruct.links,h)
+plot_eigenpose_subset(eigenpose2',modular_cluster_properties2.cluster_markersets{modno},C_2,mocapstruct2.links,h)
 
     end  
     fig = gcf;
 fig.InvertHardcopy = 'off';
     view(90,90) 
-  print('-dpng',strcat(mocapstruct.plotdirectory,'Eigenpose_overhead.png')) 
+  print('-dpng',strcat(mocapstruct.plotdirectory,'Eigenpose_overhead_comp.png')) 
    view(0,0) 
-  print('-dpng',strcat(mocapstruct.plotdirectory,'Eigenpose_transverse.png')) 
+  print('-dpng',strcat(mocapstruct.plotdirectory,'Eigenpose_transverse_comp.png')) 
    view(-90,0) 
-  print('-dpng',strcat(mocapstruct.plotdirectory,'Eigenpose_posterior.png')) 
+  print('-dpng',strcat(mocapstruct.plotdirectory,'Eigenpose_posterior_comp.png')) 
    view(-125,30) 
-  print('-dpng',strcat(mocapstruct.plotdirectory,'Eigenpose_sideview.png')) 
+  print('-dpng',strcat(mocapstruct.plotdirectory,'Eigenpose_sideview_comp.png')) 
     
   
 end

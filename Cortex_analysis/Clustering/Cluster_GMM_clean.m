@@ -1,8 +1,6 @@
-%% GMM clustering on the spectrograms
+%% GMM clustering on the spectrograms with multiple frequency scales for the spectrogram
 
 function [cluster_struct] = Cluster_GMM_clean(agg_features,opts,frames)
-
-
 
 %% set the number of voices/octaves for the GMM
 numVoices = 10;

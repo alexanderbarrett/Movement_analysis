@@ -98,7 +98,7 @@ caxis([-0.1 0.1])
 % caxis([-2 2])
 
 %% animate the skeleton
-M = animate_skeleton(limbposition,1:10:1000,limbnames,limbstart,1)
+M = animate_skeleton(limbposition,1:10:10000,limbnames,limbstart,1)
 
                time_ordering_fulltrace = cell(1,num_clusters);
 

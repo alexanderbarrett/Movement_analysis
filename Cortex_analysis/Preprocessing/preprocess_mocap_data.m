@@ -1,4 +1,4 @@
-function [mocap_struct] = preprocess_mocap_data(filepath_array,mocapfilestruct,descriptor_struct)
+function [mocap_struct] = preprocess_mocap_data(filepath_array,mocapfilestruct,descriptor_struct,mocapfiletimes)
 %% return a mocapstruct from filepaths
 % Jesse Marshall 9/26/2017
 
@@ -90,6 +90,10 @@ for ll = 1:numel(marker_names)
     markers_preproc.(marker_names{ll}) = medfilt2(markers_preproc.(marker_names{ll}),[3,1]);
 end
 
+%% make sure the z-axis is pointed up
+fprintf('leveling the marker set %f \n')
+markers_preproc = level_markers(markers_preproc);
+
 
 %% get the preprocessed and aligned markrs
 [~,markers_preproc_aligned,mean_position,rotation_matrix] = align_hands_elbows(markers_preproc,fps);
@@ -179,7 +183,7 @@ mocap_struct.fps = fps;
 mocap_struct.analog_fps = analog_fps;
 mocap_struct.aligned_rotation_matrix = rotation_matrix;
 mocap_struct.aligned_mean_position = mean_position;
-
+mocap_struct.mocapfiletimes = mocapfiletimes;
 
 mocap_struct.markercolor = mocapfilestruct.(descriptor_struct.cond).markercolor{descriptor_struct.day};
 mocap_struct.links = mocapfilestruct.(descriptor_struct.cond).links{descriptor_struct.day};

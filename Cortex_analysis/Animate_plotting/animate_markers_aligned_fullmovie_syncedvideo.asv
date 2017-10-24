@@ -24,7 +24,7 @@ subplot(1,2,1)
     set(gca,'Ycolor',[1 1 1]);
     set(gca,'Zcolor',[1 1 1]);
     
-    zlim([-150 200])
+    zlim([-150 150])
     xlim([-400 400])
     ylim([-400 400])
     set(gca,'XTickLabels',[],'YTickLabels',[],'ZTickLabels',[])
@@ -34,9 +34,12 @@ ax_h = gca;
 
 
 
+
 oldvidobj = [];
 oldfile = 'oldfile.mp4';
 oldframe = 0;
+fighandle = [];
+
 for lk = reshape(frame_inds,1,[])%1:10:10000
     
     
@@ -93,12 +96,13 @@ subplot(1,2,1)
     if (videoframe>0 && oldframe ~=videoframe)
     videofile = strcat(videofolder,num2str(videoframe-framenumber),'.mp4');
     
-    [imagesout,oldvidobj,oldfile] = mpfour_reader_singleframe(videofile,framenumber,oldvidobj,oldfile,oldframe);
-   subplot(1,2,2)
-    imagesc(imagesout(1).cdata)
+       subplot(1,2,2)
+    [imagesout,oldvidobj,oldfile,fighandle] = mpfour_reader_singleframe(videofile,framenumber,oldvidobj,oldfile,oldframe,fighandle);
+ imagesc(imagesout(1).cdata)
     oldframe = framenumber;
     end
     
+    M(find(frame_inds == lk)) =  getframe(gcf);
 end
 set(ax_h,'Nextplot','add');
 

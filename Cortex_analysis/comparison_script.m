@@ -9,17 +9,17 @@ mkdir(savedirectory);
 %createmocapfilestruct('Vicon8',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
 mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
 
-[descriptor_struct_1,mocapfilearray,mocapfilestruct] =  get_mocap_files('Vicon8','Vicon8_prelesion',mocapmasterdirectory);
+[descriptor_struct_1,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('Vicon8','Vicon8_prelesion',mocapmasterdirectory);
 [mocapstruct_pre] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1);
 
-[descriptor_struct_2,mocapfilearray,mocapfilestruct] =  get_mocap_files('Vicon8','Vicon8_dlslesion_late',mocapmasterdirectory);
-[mocapstruct_post] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_2);
+[descriptor_struct_2,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('Vicon8','Vicon8_dlslesion_late',mocapmasterdirectory);
+[mocapstruct_post] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_2,mocapfiletimes);
 
 plotfractionmissing(mocapstruct_pre)
 
 compare_plot_marker_characteristics_timerange(mocapstruct_pre,mocapstruct_pre.move_frames,mocapstruct_post,mocapstruct_post.move_frames)
 
-%compare_comp_fraction_moving(mocapstruct)
+compare_comp_fraction_moving(mocapstruct_pre,mocapstruct_post)
 %compare_plot_marker_characteristics(mocapstruct)
 
 %compare the eigen clusters based on specific timepoins
@@ -34,9 +34,9 @@ cluster_here = [8];
 [licktime,levertime] = gettasktime(mocapstruct);
 leverind = find(licktime==1);
 
+animate_markers_aligned_fullmovie(mocapstruct_post,modular_cluster_properties2.clustering_inds_agg{2}(1:20:end))
 
-
-animate_markers_aligned_fullmovie(mocapstruct_post,modular_cluster_properties2.clustering_inds_agg{8}(1:20:end))
+%% get the spectral PCS of each and embed? 
 
     %% first compute the eigenposes to look for postural differences
       %% look at the eigenposes of the data
@@ -66,7 +66,8 @@ animate_markers_aligned_fullmovie(mocapstruct_post,modular_cluster_properties2.c
  
  % time_subset = mocapstruct_pre.move_frames;
  % time_subset2 = mocapstruct_post.move_frames;
-  
+ 
+  %% break this up into its own script
  figure(33)
 %[n,x] = hist(( mocapstruct_pre.markers_aligned_preproc.HeadF(:,2)-mocapstruct_pre.markers_aligned_preproc.SpineF(:,2)),-100:1:100);
 %[n2,x2] = hist(( mocapstruct_post.markers_aligned_preproc.HeadF(:,2)-mocapstruct_post.markers_aligned_preproc.SpineF(:,2)),-100:1:100);

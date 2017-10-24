@@ -12,9 +12,17 @@ marker_plot = ones(1,numel(mocapstruct.markernames));
 
 %% initialize the figure
     set(h,'Color','k')
-    plot3( squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,1)),...
-        squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,2)),...
-        squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,3)),'o','Color',mocapstruct.markercolor{1},'MarkerFaceColor',mocapstruct.markercolor{1},'MarkerSize',6)
+%     plot3( squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,1)),...
+%         squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,2)),...
+%         squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,3)),'o','Color',mocapstruct.markercolor{1},'MarkerFaceColor',mocapstruct.markercolor{1},'MarkerSize',6)
+%    
+    
+xx = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,1));
+yy = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,2));
+zz = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,3));
+line(xx,yy,zz,'Marker','o','Color',mocapstruct.markercolor{1},'MarkerFaceColor',mocapstruct.markercolor{1},'MarkerSize',6);
+
+    
     ax = gca;
     axis(ax,'manual')
     set(gca,'Color','k')
@@ -23,15 +31,20 @@ marker_plot = ones(1,numel(mocapstruct.markernames));
     set(gca,'Ycolor',[1 1 1]);
     set(gca,'Zcolor',[1 1 1]);
     
-    zlim([-150 200])
-    xlim([-400 400])
-    ylim([-400 400])
+    zlim([-110 120])
+    xlim([-120 120])
+    ylim([-120 120])
     set(gca,'XTickLabels',[],'YTickLabels',[],'ZTickLabels',[])
-        view([-48, 12]);
+        view([-22, 12]);
 
+        base_time = datenum(mocapstruct.mocapfiletimes{1});
 
+        
+       % datestr(datenum(mocapstruct_social.mocapfiletimes{1})+300./(300*60*60*24))
 for lk = reshape(frame_inds,1,[])%1:10:10000
+     cla;
     
+  %  set(handles.t4,'String',num2str(lk));
     
 
     
@@ -44,9 +57,17 @@ for lk = reshape(frame_inds,1,[])%1:10:10000
         % don't plot markers that drop out
         if ~isnan(sum(mocapstruct.markers_preproc.(mocapstruct.markernames{jj})(ind_to_plot,:),2))
         if (~sum(mocapstruct.markers_preproc.(mocapstruct.markernames{jj})(ind_to_plot,:),2) == 0)
-            handles_here{jj} = plot3( squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{jj})(ind_to_plot,1)),...
-                squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{jj})(ind_to_plot,2)),...
-                squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{jj})(ind_to_plot,3)),'o','Color',mocapstruct.markercolor{jj},'MarkerFaceColor',mocapstruct.markercolor{jj},'MarkerSize',8);
+%             handles_here{jj} = plot3( squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{jj})(ind_to_plot,1)),...
+%                 squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{jj})(ind_to_plot,2)),...
+%                 squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{jj})(ind_to_plot,3)),'o','Color',mocapstruct.markercolor{jj},'MarkerFaceColor',mocapstruct.markercolor{jj},'MarkerSize',8);
+%         
+            xx = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{jj})(ind_to_plot,1));
+                yy = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{jj})(ind_to_plot,2));
+                zz = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{jj})(ind_to_plot,3));
+                handles_here{jj} = line(xx,yy,zz,'Marker','o','Color',mocapstruct.markercolor{jj},'MarkerFaceColor',mocapstruct.markercolor{jj},'MarkerSize',8);
+                
+                
+            
             hold on
             marker_plot(jj) = 1;
         else
@@ -59,25 +80,41 @@ for lk = reshape(frame_inds,1,[])%1:10:10000
     for mm = 1:numel(mocapstruct.links)
         if (ismember(mocapstruct.links{mm}(1),1:numel(mocapstruct.markernames)) && ismember(mocapstruct.links{mm}(2),1:numel(mocapstruct.markernames)))
             if (marker_plot(mocapstruct.links{mm}(1)) == 1 && marker_plot(mocapstruct.links{mm}(2)) == 1)
-                plot3( [squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(1)})(ind_to_plot,1)) ...
-                    squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(2)})(ind_to_plot,1)) ],...
-                    [ squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(1)})(ind_to_plot,2))...
-                    squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(2)})(ind_to_plot,2))],...
-                    [squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(1)})(ind_to_plot,3))...
-                    squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(2)})(ind_to_plot,3))],'Color',mocapstruct.markercolor{mocapstruct.links{mm}(1)},'Linewidth',3);
-            end
+                
+                
+                  xx = [squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(1)})(ind_to_plot,1)) ...
+                    squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(2)})(ind_to_plot,1)) ];
+                yy = [squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(1)})(ind_to_plot,2)) ...
+                    squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(2)})(ind_to_plot,2))];
+                zz = [squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(1)})(ind_to_plot,3)) ...
+                    squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(2)})(ind_to_plot,3))];
+                line(xx,yy,zz,'Color',mocapstruct.markercolor{mocapstruct.links{mm}(1)},'LineWidth',3);
+                
+                
+                
+%                 plot3( [squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(1)})(ind_to_plot,1)) ...
+%                     squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(2)})(ind_to_plot,1)) ],...
+%                     [ squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(1)})(ind_to_plot,2))...
+%                     squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(2)})(ind_to_plot,2))],...
+%                     [squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(1)})(ind_to_plot,3))...
+%                     squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(2)})(ind_to_plot,3))],'Color',mocapstruct.markercolor{mocapstruct.links{mm}(1)},'Linewidth',3);
+             end
         end
     end
 
-        title(strcat('  Frame: ' ,num2str(lk)),'Color','w')
+    
+        title(strcat('  Frame: ' ,datestr(base_time+lk./(mocapstruct.fps*60*60*24))),'Color','w')
     
     
     drawnow
     hold off
   
     frame_last = lk;
+    
+        M(find(frame_inds == lk)) =  getframe(gcf);
+
     %clf
 end
-set(gca,'Nextplot','add');
+%set(gca,'Nextplot','add');
 
 end

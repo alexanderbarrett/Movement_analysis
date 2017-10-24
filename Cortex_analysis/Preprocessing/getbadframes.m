@@ -1,7 +1,7 @@
 function bad_frames_agg = getbadframes(marker_velocity,marker_position,fps)
 num_markers = size(marker_velocity,1);
 
-bad_frame_surround = fps./6;
+bad_frame_surround = 5;
 bad_frames_agg = cell(1,num_markers);
 bad_frame_velthresh = 15;
 for mm = 1:num_markers

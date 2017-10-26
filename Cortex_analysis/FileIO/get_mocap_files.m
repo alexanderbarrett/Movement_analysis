@@ -100,6 +100,19 @@ mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descripto
 mocapfiletimes = mocapfilestruct.(descriptor_struct_1.cond).mocapdatecreate{descriptor_struct_1.day}(good_inds);
 
 
+ case 'Vicon8_prelesion_long'
+     descriptor_struct_1.cond = 'PreLesion';
+ descriptor_struct_1.day = 5;
+ 
+mocapfilearray=[];
+ 
+ for day_find = [4,5]
+  descriptor_struct_1.day = day_find;
+
+mocapfilearray = cat(1,mocapfilearray,mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(:));
+ end
+     
+     
  case 'Vicon8_dlslesion_late'
     descriptor_struct_1.tag = 'overnight';
 descriptor_struct_1.cond = 'UniLesion';

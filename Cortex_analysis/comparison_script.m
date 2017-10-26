@@ -10,7 +10,7 @@ mkdir(savedirectory);
 mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
 
 [descriptor_struct_1,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('Vicon8','Vicon8_prelesion',mocapmasterdirectory);
-[mocapstruct_pre] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1);
+[mocapstruct_pre] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1,mocapfiletimes);
 
 [descriptor_struct_2,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('Vicon8','Vicon8_dlslesion_late',mocapmasterdirectory);
 [mocapstruct_post] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_2,mocapfiletimes);

@@ -48,3 +48,17 @@ v = VideoWriter(strcat(savedirectory,'sbys_movie6'),'MPEG-4');
 M = animate_sbys(mocapstruct,mocapvideodirectory,subset{4} )
    writeVideo(v,M)
                                     close(v)
+                                    
+                                    
+                                    
+                                    
+                                    %% now get very long example
+                                    
+[descriptor_struct_1,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('Vicon8','Vicon8_caff',mocapmasterdirectory);
+
+%% either load  or preprocess from scratch
+[mocapstruct] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1,mocapfiletimes);
+savedirectory = strcat(mocapmasterdirectory,'Plots_timescales_examples',filesep);
+
+                                    Vicon8_prelesion_long
+                                    

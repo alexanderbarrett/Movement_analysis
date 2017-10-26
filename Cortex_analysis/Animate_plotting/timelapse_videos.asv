@@ -8,17 +8,21 @@ mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
 %% load or create struct
 %createmocapfilestruct('Vicon8',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
 
-movie_matrix = cell(1,numel(mocapfilestruct.PreLesion.days));
+movie_matrix = cell(2,max(numel(mocapfilestruct.PreLesion.days),numel(mocapfilestruct.UniLesion.days)));
 
-
+for taghere = 1
+    if (taghere == 1)
 descriptor_struct_1.cond = 'PreLesion';
+    else
+      descriptor_struct_1.cond = 'UniLesion';
+  
+    end
 descriptor_struct_1.tag = 'overnight';
-   descriptor_struct_1.day = kk;
 
 for kk=1:numel(mocapfilestruct.(descriptor_struct_1.cond).days)
-    
-   
-if sum(ismember(mocapfilestruct.PreLesion.day_conds{kk},'overnight'))>0
+       descriptor_struct_1.day = kk;
+
+if sum(ismember(mocapfilestruct.(descriptor_struct_1.cond).day_conds{kk},'overnight'))>0
 good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
 good_inds_2 = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},'morning')));
 
@@ -33,23 +37,28 @@ mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descripto
 
 [modular_cluster_properties] = get_modularclustproperties(mocapstruct);
 
-v = VideoWriter(strcat(savedirectory,'sbys_movie_prelesion',num2str(kk)),'MPEG-4');
+v = VideoWriter(strcat(savedirectory,'sbys_movie_',num2str(taghere),'lesion',num2str(kk)),'MPEG-4');
                 videolength = 100*10*60;
                 open(v)                
                 
-                time_subset = intersect(mocapstruct.move_frames,modular_cluster_properties.clustering_inds_agg{2});
+                time_subset = intersect(mocapstruct.move_frames,modular_cluster_properties.clustering_inds_agg{8});
+                
+                
+                
             %    inds = intersect(modular_cluster_properties_social.clustering_inds_agg{2},,
-movie_matrix{kk} = animate_markers_aligned_fullmovie(mocapstruct,time_subset((1:30:videolength)));
-   writeVideo(v,movie_matrix{kk})
+movie_matrix{taghere ,kk} = animate_markers_aligned_fullmovie(mocapstruct,time_subset((1:30:videolength)));
+   writeVideo(v,movie_matrix{taghere ,kk})
                                     close(v)
 end
 end
-
+end
 
 
 
 plot_simul = 1;
 if (plot_simul)
+    for taghere = 2
+
     nrows = 2;
     ncols = 3;
     
@@ -67,7 +76,7 @@ if (plot_simul)
     
     
     %num2str(cluster_numbers');
-    fighand =   figure(388)
+    fighand =   figure(388);
     set(fighand,'Color','k')
     set(fighand,'Position',[100 100 1100 1100])
     for lk = 1:1000 %numel(movie_output{jjj})
@@ -80,18 +89,19 @@ if (plot_simul)
                 frame_use = 1;
             end
             
-            imshow(movie_matrix{mov_ind}(frame_use).cdata,movie_matrix{mov_ind}(frame_use).colormap)
+            imshow(movie_matrix{taghere,mov_ind}(frame_use).cdata,movie_matrix{taghere,mov_ind}(frame_use).colormap)
             title(cluster_names{ll},'Color','w')
         end
         M_full(lk) =      getframe(gcf);
         
     end
     
-    v = VideoWriter(strcat(savedirectory_subcluster,'aggregate_movie'),'MPEG-4');
+    v = VideoWriter(strcat(savedirectory,'aggregate_movie_lesion',num2str(taghere)),'MPEG-4');
     open(v)
     writeVideo(v, M_full)
     close(v)
-    clear M_here
+    clear M_full
+    end
 end
                 
 

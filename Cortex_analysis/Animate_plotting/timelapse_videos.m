@@ -41,9 +41,16 @@ v = VideoWriter(strcat(savedirectory,'sbys_movie_',num2str(taghere),'lesion',num
                 videolength = 100*10*60;
                 open(v)                
                 
-                time_subset = intersect(mocapstruct.move_frames,modular_cluster_properties.clustering_inds_agg{2});
+                time_subset = intersect(mocapstruct.move_frames_fast,modular_cluster_properties.clustering_inds_agg{8});
+                
+                
+                time_subset_contig = find_contig_blocks(time_subset,300);
+                
+                figure(333)
+                plot(medfilt1(mocapstruct.markers_preproc.SpineL(time_subset,3),6));
+                
             %    inds = intersect(modular_cluster_properties_social.clustering_inds_agg{2},,
-movie_matrix{taghere ,kk} = animate_markers_aligned_fullmovie(mocapstruct,time_subset((1:30:videolength)));
+movie_matrix{taghere ,kk} = animate_markers_aligned_fullmovie(mocapstruct,time_subset((1:30:min(numel(time_subset),videolength))));
    writeVideo(v,movie_matrix{taghere ,kk})
                                     close(v)
 end
@@ -54,7 +61,7 @@ end
 
 plot_simul = 1;
 if (plot_simul)
-    for taghere = 2
+    for taghere = 1
 
     nrows = 2;
     ncols = 3;
@@ -85,6 +92,8 @@ if (plot_simul)
             if (frame_use==0)
                 frame_use = 1;
             end
+            
+         %   frameuse = mod(
             
             imshow(movie_matrix{taghere,mov_ind}(frame_use).cdata,movie_matrix{taghere,mov_ind}(frame_use).colormap)
             title(cluster_names{ll},'Color','w')

@@ -163,19 +163,13 @@ clear marker_position
 %% get move/not move with a simple threshold
 veltrace = (conv(abs_velocity_antialiased(5,:),ones(1,300)./300,'same'));
 vel_thresh = 0.008;
-vel_thresh_fast = 0.05;
 
 frames_move = find(veltrace>vel_thresh);
 frames_rest = find(veltrace<=vel_thresh);
 
-
-frames_move_fast = find(veltrace>vel_thresh_fast);
-frames_rest_fast = find(veltrace<=vel_thresh_fast);
-
-
 move_frames = zeros(1,numel(veltrace));
 move_frames(veltrace>vel_thresh) = 1;
-move_frames = conv(move_frames,ones(1,300)./300,'same');
+move_frames = conv(move_frames(ones(1,300)./300));
 
 frames_near_move = find(move_frames >0);
 frames_near_rest = setxor(1:numel(veltrace),frames_move);
@@ -187,10 +181,8 @@ mocap_struct.markers_aligned_preproc = markers_preproc_aligned;
 mocap_struct.analog = analog;
 mocap_struct.move_frames = frames_move;
 mocap_struct.rest_frames = frames_rest;
-mocap_struct.move_frames_fast = frames_move_fast;
-mocap_struct.rest_frames_fast = frames_rest_fast;
 mocap_struct.move_near_frames = frames_near_move;
-mocap_struct.rest_near_frames = frames_near_rest;
+mocap_struct.rest_near_frames = frames_rest;
 
 mocap_struct.bad_frames_agg = bad_frames_agg;
 mocap_struct.fraction_missing = fraction_missing;

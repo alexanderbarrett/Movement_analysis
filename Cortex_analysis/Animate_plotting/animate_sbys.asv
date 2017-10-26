@@ -58,8 +58,8 @@ matched_frames_aligned = cat(2,zeros(1,numel(bad_frames)),cell2mat(matched_frame
 % v = VideoWriter(strcat(savedirectory,'sbys_movie_social'),'MPEG-4');
                 
            %     open(v)                
-M= animate_markers_aligned_fullmovie_syncedvideo(mocapstruct,framesubset(1:7:end),...
-    camfolder,matched_frames_aligned(1:7:end));
+M= animate_markers_aligned_fullmovie_syncedvideo(mocapstruct,framesubset(300),...
+    camfolder,matched_frames_aligned);
  %  writeVideo(v,M)
                                   %  close(v)
                 

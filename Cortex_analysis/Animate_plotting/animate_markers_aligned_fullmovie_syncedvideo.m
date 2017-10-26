@@ -11,7 +11,7 @@ marker_plot = ones(1,numel(mocapstruct.markernames));
 
 
 %% initialize the figure
-subplot(1,2,1)
+subplot(2,1,1)
     set(h,'Color','k')
     plot3( squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,1)),...
         squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,2)),...
@@ -46,7 +46,7 @@ for lk = reshape(frame_inds,1,[])%1:10:10000
 
     %% Plot the marker movie
     ind_to_plot = lk;
-subplot(1,2,1)
+subplot(2,1,1)
      cla;
 
 %% Plot markers that are tracked in the frame
@@ -72,6 +72,10 @@ subplot(1,2,1)
             marker_plot(jj) = 0;
         end
         end
+    end
+    
+    if marker_plot(5) ==0 || marker_plot(4) == 0
+        marker_plot(:) = 0;
     end
     
     %% plot the links between markers
@@ -112,12 +116,12 @@ subplot(1,2,1)
     
     
     %% plot the video movie
-    videoframe = matchedindex(lk);
+    videoframe = matchedindex(find(frame_inds==lk));
     framenumber = mod(videoframe,3500);
     if (videoframe>0 && oldframe ~=videoframe)
     videofile = strcat(videofolder,num2str(videoframe-framenumber),'.mp4');
     
-       subplot(1,2,2)
+       subplot(2,1,2)
     [imagesout,oldvidobj,oldfile,fighandle] = mpfour_reader_singleframe(videofile,framenumber,oldvidobj,oldfile,oldframe,fighandle);
  imagesc(imagesout(1).cdata)
     oldframe = framenumber;

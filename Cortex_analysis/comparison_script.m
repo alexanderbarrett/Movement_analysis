@@ -10,10 +10,12 @@ mkdir(savedirectory);
 mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
 
 [descriptor_struct_1,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('Vicon8','Vicon8_prelesion',mocapmasterdirectory);
-[mocapstruct_pre] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1,mocapfiletimes);
+[mocapstruct_pre] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1,mocapfiletimes,0,0);
+mocapstruct_pre = mocapstruct_pre.mocap_struct;
 
 [descriptor_struct_2,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('Vicon8','Vicon8_dlslesion_late',mocapmasterdirectory);
-[mocapstruct_post] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_2,mocapfiletimes);
+[mocapstruct_post] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_2,mocapfiletimes,0,1);
+
 
 plotfractionmissing(mocapstruct_pre)
 
@@ -26,6 +28,25 @@ compare_comp_fraction_moving(mocapstruct_pre,mocapstruct_post)
 cluster_here = [8];
 [modular_cluster_properties] = get_modularclustproperties(mocapstruct_pre);
 [modular_cluster_properties2] = get_modularclustproperties(mocapstruct_post);
+
+[good_post,good_pre,frame_ex_1,frame_ex_2] = compare_features(mocapstruct_pre,modular_cluster_properties,mocapstruct_post,modular_cluster_properties2,'dynamics');
+pre_inds = 1:numel(frame_ex_1);
+post_inds = (numel(frame_ex_1)+1):(numel(frame_ex_1)+numel(frame_ex_2));
+
+
+good_post_sort = sort(good_post,'ASCEND');
+good_post_sort = unique(bsxfun(@plus,good_post_sort,(-150:150)'));
+good_post_post = intersect(good_post_sort,post_inds);
+good_post_pre = intersect(good_post,pre_inds);
+
+
+good_pre_sort = sort(good_pre,'ASCEND');
+good_pre_sort = unique(bsxfun(@plus,good_pre_sort,(-150:150)'));
+good_pre_post = intersect(good_pre_sort,post_inds);
+good_pre_pre = intersect(good_pre,pre_inds);
+
+ dos('cd C:\Users\Jesse Marshall\Documents\GitHub\Movement_analysis\FATGUI-master\')
+MCC;
 
 %% the clipped index is the index of clipped frames in the full trace
 [modular_cluster_properties] = get_clustering_features(mocapstruct_pre,modular_cluster_properties,cluster_here)  ;

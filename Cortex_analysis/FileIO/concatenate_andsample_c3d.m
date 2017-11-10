@@ -30,7 +30,24 @@ fclose(fid);
 w0 = 60/(analog_fps/2); %filter fundamental frequency
 bw = w0/50; %Q=35
 [b,a] = iirnotch(w0,bw);
-if (isfield(analog,'LEVER'))
+
+   fn_markers = fieldnames(markers);    
+marker_number = (numel(markers.(fn_markers{1})(:,1)));
+
+  fn_analog = fieldnames(analog);   
+
+if (numel(fn_analog) == 0)
+    analog = struct('GROUND',zeros((marker_number),1),...
+        'LEVER',zeros((marker_number),1),...
+        'WATERVALVE',zeros((marker_number),1),...
+        'SPEAKER',zeros((marker_number),1),...
+        'LICK_SENSOR',zeros((marker_number),1));
+    
+
+%analog.LICK_SENSOR = zeros(1,numel(marker_number));
+lever_thresholded = zeros(1,(marker_number));
+
+else
     
 
 
@@ -53,11 +70,6 @@ hold off
 
 
 %% supplement the length if there is a mismatch
-   fn_markers = fieldnames(markers);    
-marker_number = numel(numel(markers.(fn_markers{1})(:,1)));
-
-  fn_analog = fieldnames(analog);    
-analog_number = numel(analog.(fn_analog{1}));
 
 
 
@@ -117,9 +129,13 @@ end
 analog = analog_shifted;
 lever_thresholded = lever_shifted;
 
+end
+  fn_analog = fieldnames(analog);   
+
+analog_number = numel(analog.(fn_analog{1}));
 
 
-resample_analog = resample([lever_thresholded' analog.SPEAKER analog.(fnames{3}) analog.LICK_SENSOR analog.GROUND],1,1);
+resample_analog = resample([lever_thresholded' analog.SPEAKER analog.(fn_analog{3}) analog.LICK_SENSOR analog.GROUND],1,1);
 resample_analog = bsxfun(@minus,resample_analog,mean(resample_analog,1));
 
 
@@ -134,7 +150,7 @@ if analog_number < marker_number
 end
 
 
-end
+
 
 
 if (ll == 1)

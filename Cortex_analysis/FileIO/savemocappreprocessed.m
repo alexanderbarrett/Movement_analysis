@@ -1,9 +1,6 @@
 function savemocappreprocessed()
 
-mocapfilestruct = loadmocapfilestruct('Vicon8');
 
-for dayprocess = 5:7
-%get the desired files
 goodinds = find(cellfun(@numel,strfind(mocapfilestruct.PreLesion.mocapfiles{dayprocess},'.c3d')));
 mocapfilearray = mocapfilestruct.PreLesion.mocapfiles{dayprocess}(goodinds);
 
@@ -21,6 +18,5 @@ fps = 300;
 filename = strcat(preproc_save_directory,strrep(strrep(filearrayhere{1},filebase_directory,''),'.c3d','.mat'));
 save(filename,'mocap_struct','-v7.3')
 
-end
 end
 end

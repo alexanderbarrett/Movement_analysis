@@ -3,7 +3,7 @@ function createmocapvideodirectories(ratname)
 
 if strcmp(ratname,'Vicon8')
 mocapfilestruct = struct('PreLesion',[],'UniLesion',[]);
-mocapfilestruct.mocapdir = 'E:\Bence\Data\Motionanalysis_captures\Vicon8\';
+mocapfilestruct.mocapdir = '\\140.247.178.37\Motionanalysis_captures\Vicon8\';
 mocapfilestruct.PreLesion.days = {'20170816\','20170817\','20170818\',...
     '20170820\',...
     '20170821\','20170822\','20170823\',... day7
@@ -27,7 +27,8 @@ end
 
 if strcmp(ratname,'Vicon3')
     
-    mocapdir = 'E:\Bence\Data\Motionanalysis_captures\Vicon3\';
+  
+    mocapdir = ' \\140.247.178.37\Motionanalysis_captures\Vicon3\';
 
 mocapfilestruct = struct('early',[],'OneHand',[],'eighteenmarker',[],'eighteenmarkernoheadcap',[],'seventeen',[]);
 mocapfilestruct.mocapdir = 'E:\Bence\Data\Motionanalysis_captures\Vicon3\';

@@ -79,3 +79,20 @@ M= animate_markers_aligned_fullmovie_syncedvideo(mocapstruct_social,modular_clus
 %% also save an accelerated video
 M_an = animate_markers_aligned_fullmovie(mocapstruct_social,modular_cluster_properties_social.clustering_inds_agg{2}((1:150:end)));
 
+%load data
+caffdata = load('E:\Dropbox\mocapdata_for_tim\caff.mat');
+%this is just a compatibility issue that will be fixed
+caffdata.mocap_struct.rest_frames = 1;
+caffdata.mocap_struct.move_frames = 2:size(aligned_mean_position,1);
+
+%get the indicies of the frames when all the markers are tracked
+[modular_cluster_properties_caff] = get_modularclustproperties(caffdata.mocap_struct);
+%look at cluster 2 - the spine, head and hips
+cluster_pick =2;
+%add the features to the cluster -- this splices and hi-passes all the data
+%together around th
+ [modular_cluster_properties_caff2] = get_clustering_features(caffdata.mocap_struct,modular_cluster_properties_caff,cluster_pick) ;
+
+animate_markers_aligned_fullmovie(caffdata.mocap_struct,modular_cluster_properties_caff.clustering_inds_agg{cluster_pick}((1:20:end)));
+%
+

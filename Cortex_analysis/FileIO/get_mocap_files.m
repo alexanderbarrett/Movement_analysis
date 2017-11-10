@@ -90,6 +90,7 @@ descriptor_struct_1.cond = 'PreLesion';
 good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
 mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(good_inds); 
 mocapfiletimes = mocapfilestruct.(descriptor_struct_1.cond).mocapdatecreate{descriptor_struct_1.day}(good_inds);
+ descriptor_struct_1.vidtag = 'amph';
 
  case 'Vicon8_dlslesion_early'
        descriptor_struct_1.tag = 'overnight_two1';
@@ -98,25 +99,50 @@ descriptor_struct_1.cond = 'UniLesion';
 good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
 mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(good_inds);
 mocapfiletimes = mocapfilestruct.(descriptor_struct_1.cond).mocapdatecreate{descriptor_struct_1.day}(good_inds);
+descriptor_struct_1.vidtag = 'dlsearly';
 
 
  case 'Vicon8_prelesion_long'
      descriptor_struct_1.cond = 'PreLesion';
  descriptor_struct_1.day = 5;
- 
+ descriptor_struct_1.vidtag = 'long';
+descriptor_struct_1.tag = 'long';
+
 mocapfilearray=[];
+ mocapfiletimes = [];
  
- for day_find = [4,5]
+ for day_find = [5:7]
   descriptor_struct_1.day = day_find;
 
 mocapfilearray = cat(1,mocapfilearray,mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(:));
+mocapfiletimes = cat(1,mocapfiletimes,mocapfilestruct.(descriptor_struct_1.cond).mocapdatecreate{descriptor_struct_1.day}(:));
+
  end
      
+ 
+  case 'Vicon8_lesion_long'
+     descriptor_struct_1.cond = 'UniLesion';
+ descriptor_struct_1.day = 5;
+ descriptor_struct_1.vidtag = 'postlong';
+descriptor_struct_1.tag = 'postlong';
+
+mocapfilearray=[];
+ mocapfiletimes = [];
+ 
+ for day_find = [3:7]
+  descriptor_struct_1.day = day_find;
+
+mocapfilearray = cat(1,mocapfilearray,mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(:));
+mocapfiletimes = cat(1,mocapfiletimes,mocapfilestruct.(descriptor_struct_1.cond).mocapdatecreate{descriptor_struct_1.day}(:));
+
+ end
      
  case 'Vicon8_dlslesion_late'
     descriptor_struct_1.tag = 'overnight';
 descriptor_struct_1.cond = 'UniLesion';
    descriptor_struct_1.day = 7;
+   descriptor_struct_1.vidtag = 'post_late';
+
 good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
 mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(good_inds(1:10));
 mocapfiletimes = mocapfilestruct.(descriptor_struct_1.cond).mocapdatecreate{descriptor_struct_1.day}(good_inds);
@@ -127,6 +153,8 @@ mocapfiletimes = mocapfilestruct.(descriptor_struct_1.cond).mocapdatecreate{desc
               descriptor_struct_1.tag = 'veh';
 descriptor_struct_1.cond = 'PreLesion';
    descriptor_struct_1.day = 5;
+   descriptor_struct_1.vidtag = 'vehicle';
+
 good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
 mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(good_inds);
 mocapfiletimes = mocapfilestruct.(descriptor_struct_1.cond).mocapdatecreate{descriptor_struct_1.day}(good_inds);
@@ -134,6 +162,8 @@ mocapfiletimes = mocapfilestruct.(descriptor_struct_1.cond).mocapdatecreate{desc
            case 'JDM25pre'
 descriptor_struct_1.tag = 'overnight1';
 descriptor_struct_1.cond = 'PreLesion';
+descriptor_struct_1.vidtag = 'JDM25_pre';
+
    descriptor_struct_1.day = 6;
    good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
 mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(good_inds);
@@ -142,6 +172,8 @@ mocapfiletimes = mocapfilestruct.(descriptor_struct_1.cond).mocapdatecreate{desc
  case 'JDM25post'
 descriptor_struct_1.tag = 'overnight1';
 descriptor_struct_1.cond = 'UniLesion';
+descriptor_struct_1.vidtag = 'JDM25_post';
+
    descriptor_struct_1.day = 6;
    good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
 mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(good_inds);

@@ -26,10 +26,17 @@ end
 cd(strcat(mocapdir,regans{find(strfindarray>0)}));
 for kk =1:numel(filepath_array)
     if numel(strfind(filepath_array{kk},'Generated_C3D_files\nolj_'))
-    filepath_use = strrep(strrep(filepath_array{kk},'Generated_C3D_files\nolj_',''),'_nolj.c3d','.anb');
-    else
+    filepath_use = strrep(strrep(strrep(filepath_array{kk},'Generated_C3D_files\nolj_',''),'_nolj',''),'.c3d','.anb');
+   
+    
+    elseif numel(strfind(filepath_array{kk},'Generated_C3D_files\'))
             filepath_use = strrep(strrep(filepath_array{kk},'Generated_C3D_files\',''),'_nolj.c3d','.anb');
+    elseif numel(strfind(filepath_array{kk},'skeletoncaptures\nolj_'))
+            filepath_use = strrep(strrep(filepath_array{kk},'skeletoncaptures\nolj_',''),'.c3d','.anb');
     end
+        
+    
+    
     
     stringcmd = char(strcat('dir',{' '},filepath_use ));
     [dum,str] = dos(stringcmd);

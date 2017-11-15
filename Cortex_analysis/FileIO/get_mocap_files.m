@@ -2,6 +2,10 @@ function [descriptor_struct_1,mocapfilearray,mocapfilestruct,mocapvideodirectory
 
 
 switch rat
+    case 'Vicon3'
+mocapfilestruct = loadmocapfilestruct('Vicon3',mocapmasterdirectory);
+mocapfilestruct.mocapdir = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon3\';
+
     case 'Vicon8'
 mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
     case 'JDM25'
@@ -82,6 +86,42 @@ end
 end
 mocapvideodirectory =  strcat(dir_base,good_folder);
  
+
+    case 'Vicon3_htr'
+descriptor_struct_1.tag = 'amph';
+descriptor_struct_1.cond = 'eighteenmarker';
+   descriptor_struct_1.day = 2;
+descriptor_struct_1.vidtag = 'amph';
+
+%good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
+
+mocapfilearray = {'Y:\Jesse\Data\Motionanalysis_captures\Vicon3\20170721\Generated_C3D_files\Vicon3_recording_amphetamine_vid1_nolj.c3d',...
+    'Y:\Jesse\Data\Motionanalysis_captures\Vicon3\20170721\Generated_C3D_files\Vicon3_recording_amphetamine_vid2_nolj.c3d',...
+    'Y:\Jesse\Data\Motionanalysis_captures\Vicon3\20170721\Generated_C3D_files\Vicon3_recording_amphetamine_vid3_nolj.c3d',...
+    'Y:\Jesse\Data\Motionanalysis_captures\Vicon3\20170721\Generated_C3D_files\Vicon3_recording_amphetamine_vid4_nolj.c3d',...
+    'Y:\Jesse\Data\Motionanalysis_captures\Vicon3\20170721\Generated_C3D_files\Vicon3_recording_amphetamine_vid5_nolj.c3d',...
+    };
+
+
+
+good_inds = 1:5;
+ mocapfiletimes = mocapfilestruct.(descriptor_struct_1.cond).mocapdatecreate{descriptor_struct_1.day}(good_inds);
+
+ 
+
+dir_base = strcat(mocapfilestruct.mocapdir,strcat(strrep(mocapfilestruct.(descriptor_struct_1.cond).days{descriptor_struct_1.day},'Generated_C3D_files\','')));
+file_folders = dir(dir_base);
+directories = find(cat(1,file_folders.isdir)==1);
+good_folder = [];
+for mm = directories'
+if (numel(strfind(file_folders(mm).name,descriptor_struct_1.vidtag)))
+    good_folder = file_folders(mm).name;
+end
+end
+mocapvideodirectory =  strcat(dir_base,good_folder);
+ 
+
+
  
     case 'Vicon8_amph'
         descriptor_struct_1.tag = 'amph';

@@ -86,7 +86,7 @@ for jj = 1:markers.NumSegments
     readend = ind(jj+1) - 1;
     end
 
-    c = textscan(char(data(readstart:readend)'),'%f');
+    c = textscan(char(data(readstart:readend)'),'%f64');
     if length(c{1}) ~= 8 * markers.NumFrames;
         disp('problem');
     end

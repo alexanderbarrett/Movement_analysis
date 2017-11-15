@@ -172,12 +172,11 @@ agg_translations_global = transvelocity_global;
 else
     for mmm = 1:numel(agg_rotations)
         agg_rotations{mmm} = cat(3,agg_rotations{mmm},rotmatricies_local{mmm});
-                agg_rotations_quat{mmm} = cat(1,agg_rotations_quat{mmm},rotmatricies_quat_local{mmm});
-        agg_rotations_eul{mmm} = cat(1,agg_rotations_eul{mmm},rotmatricies_eul_local{mmm});
+                agg_rotations_quat{mmm} = cat(3,agg_rotations_quat{mmm},rotmatricies_local{mmm});
+        agg_rotations_eul{mmm} = cat(3,agg_rotations_eul{mmm},rotmatricies_local{mmm});
 
-        
 agg_translations_local{mmm} = cat(3,agg_translations_local{mmm},transmatricies_local{mmm});
-agg_translations_global{mmm} = cat(2,agg_translations_global{mmm},transvelocity_global{mmm});
+agg_translations_global{mmm} = cat(3,agg_translations_global{mmm},transvelocity_global{mmm});
     end
        fn_limb = fieldnames(agg_limbposition);    
    for jj = 1:numel(fn_limb)
@@ -191,37 +190,18 @@ end
 
 end
 
-agg_rotations_eul = agg_rotations_eul(~cellfun('isempty',agg_rotations_eul)) ;
-
 agg_rotations = agg_rotations(~cellfun('isempty',agg_rotations)) ;
+agg_rotations_eul = agg_rotations_eul(~cellfun('isempty',agg_rotations_eul)) ;
 agg_rotations_quat = agg_rotations_quat(~cellfun('isempty',agg_rotations_quat)) ;
-
-for mm = 1:numel(agg_rotations_eul)
-    agg_rotations_quat{mm} = eul2quat(deg2rad(agg_rotations_eul{mm}), skeleton.EulerRotationOrder);
-
-      agg_rotations{mm} = eul2rotm(deg2rad(agg_rotations_eul{mm}), skeleton.EulerRotationOrder);
-end
 
 agg_translations_local = agg_translations_local(~cellfun('isempty',agg_translations_local)) ;
 agg_translations_global = agg_translations_global(~cellfun('isempty',agg_translations_global)) ;
-
-%% get rid of the conjugations in the quaternions which can cause it to rotate 2:1
-for mm = 1:numel(agg_rotations_quat)
-
-    initial_sign = agg_rotations_quat{mm}(1,:);
-        sign_product = sum(bsxfun(@times,(agg_rotations_quat{mm}(:,2:4)),initial_sign(2:4)),2);
-
-agg_rotations_quat{mm} = bsxfun(@times,agg_rotations_quat{mm},sign(sign_product));
-end
-
 
 htr_struct = struct();
 htr_struct.agg_rotations = agg_rotations;
 htr_struct.agg_rotations_eul = agg_rotations_eul;
 htr_struct.agg_rotations_quat = agg_rotations_quat;
 htr_struct.tree = skeleton.tree;
-htr_struct.jointnames = fieldnames(skeleton.tree);
-
 htr_struct.agg_limbposition = agg_limbposition;
 htr_struct.agg_translations_local = agg_translations_local;
 htr_struct.agg_translations_global = agg_translations_global;

@@ -83,7 +83,7 @@ M_an = animate_markers_aligned_fullmovie(mocapstruct_social,modular_cluster_prop
 caffdata = load('E:\Dropbox\mocapdata_for_tim\caff.mat');
 %this is just a compatibility issue that will be fixed
 caffdata.mocap_struct.rest_frames = 1;
-caffdata.mocap_struct.move_frames = 2:size(aligned_mean_position,1);
+caffdata.mocap_struct.move_frames = 2:size(caffdata.mocap_struct.aligned_mean_position,1);
 
 %get the indicies of the frames when all the markers are tracked
 [modular_cluster_properties_caff] = get_modularclustproperties(caffdata.mocap_struct);

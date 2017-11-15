@@ -32,17 +32,12 @@ end
 
 if strcmp(ratname,'JDM25')
 
-mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion',[]);
+mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion');
 mocapfilestruct.mocapdir = strcat(mocapmasterdirectory,ratname,filesep);
-mocapfilestruct.PreLesion.days = {'20170913\Generated_C3D_files\','20170914\Generated_C3D_files\','20170915\Generated_C3D_files\',...
-    '20170916\Generated_C3D_files\','20170917\Generated_C3D_files\','20170918\Generated_C3D_files\',...
-    '20170919\Generated_C3D_files\','20170920\Generated_C3D_files\','20170921\Generated_C3D_files\','20170922\Generated_C3D_files\','20170923\Generated_C3D_files\'};
-mocapfilestruct.UniLesion.days = {'20170924\Generated_C3D_files\','20170925\Generated_C3D_files\',...
-    '20170926\Generated_C3D_files\','20170927\Generated_C3D_files\','20170928\Generated_C3D_files\','20170929\Generated_C3D_files\',...
-    '20171002\Generated_C3D_files\','20171003\Generated_C3D_files\'};
-mocapfilestruct.BiLesion.days = {'20171004\Generated_C3D_files\','20171005\Generated_C3D_files\','20171006\Generated_C3D_files\',...
-    '20171007\Generated_C3D_files\','20171008\Generated_C3D_files\','20171009\Generated_C3D_files\','20171010\Generated_C3D_files\',...
-    '20171011\Generated_C3D_files\','20171012\Generated_C3D_files\','20171013\Generated_C3D_files\'};
+mocapfilestruct.PreLesion.days = {'20170913\','20170914\','20170915\',...
+    '20170916\','20170917\','20170918\','20170919\','20170920\','20170921\','20170922\','20170923\'};
+mocapfilestruct.UniLesion.days = {'20170924\','20170925\','20170926\','20170927\','20170928\','20170929\','20171002\','20171003\'};
+mocapfilestruct.BiLesion.days = {'20171004\','20171005\','20171006\','20171007\','20171008\','20171009\','20171010\','20171011\','20171012\','20171013\'};
 
 
 %% colos and links
@@ -67,16 +62,10 @@ end
 
 if strcmp(ratname,'JDM32')
 
-mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion',[]);
+mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion');
 mocapfilestruct.mocapdir = strcat(mocapmasterdirectory,ratname,filesep);
-mocapfilestruct.PreLesion.days = {'20171020\Generated_C3D_files\','20171022\Generated_C3D_files\','20171023\Generated_C3D_files\',...
-    '20171024\Generated_C3D_files\','20171025\Generated_C3D_files\','20171026\Generated_C3D_files\','20171027\Generated_C3D_files\',...
-    '20171028\Generated_C3D_files\','20171029\Generated_C3D_files\','20171030\Generated_C3D_files\'};
-mocapfilestruct.UniLesion.days = {'20171031\Generated_C3D_files\','20171031_2\Generated_C3D_files\','20171101\Generated_C3D_files\',...
-    '20171101_2\Generated_C3D_files\','20171102\Generated_C3D_files\','20171103\Generated_C3D_files\','20171104\Generated_C3D_files\',...
-    '20171105\Generated_C3D_files\','20171106\Generated_C3D_files\','20171107\Generated_C3D_files\','20171108\Generated_C3D_files\'};
-mocapfilestruct.BiLesion.days = {'20171109\Generated_C3D_files\','20171110\Generated_C3D_files\','20171113\Generated_C3D_files\',...
-    '20171114\Generated_C3D_files\'};
+mocapfilestruct.PreLesion.days = {'20171020\','20171022\','20171023\','20171024\','20171025\','20171026\','20171027\','20171028\','20171029\','20171030\'};
+mocapfilestruct.UniLesion.days = {'20171031\','20171031_2\','20171101\','20171101_2\','20171102\','20171103\','20171104\','20171105\','20171106\','20171107\','20171108\'};
 
 
 %% colos and links

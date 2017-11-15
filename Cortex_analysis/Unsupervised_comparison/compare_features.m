@@ -1,4 +1,4 @@
-function [good_post,good_pre,frame_ex_1,frame_ex_2] = compare_features(mocapstruct_pre,mod_1,mocapstruct_post,mod_2,comptype)
+function [output_struct] = compare_features(mocapstruct_pre,mod_1,mocapstruct_post,mod_2,comptype)
 
     struct_fn = fieldnames(mocapstruct_pre.markers_aligned_preproc);
     clustering_type =2;
@@ -164,12 +164,22 @@ opts.clustering_window = opts.fps./2;
 opts.clustering_overlap = opts.fps./4;
 nummarkershere = size(feature_mat_1,2)./3;
 
+agg_features = permute(reshape(feature_mat_1,size(feature_mat_1,1),3,[]),[1 3 2]);
+frames_ind = bsxfun(@plus,1:25:500,floor(2.28*10^5));
+offset = 75;
+
+h=figure(145);
+pictoral_animation_subset(agg_features,mocapstruct_pre,frames_ind,offset,mod_2.cluster_markersets{clustering_type},h)
+subplot(2,1,1)
+xlim([-100 1500])
+view([-1 16])
 
 [dyadic_spectrograms_1,fr,timespect] = get_dyadic_spectrogram(feature_mat_1(:,:)',opts);
 [dyadic_spectrograms_2,fr,timespect2] = get_dyadic_spectrogram(feature_mat_2(:,:)',opts);
 feature_time_ind=2;
 
-time_spect_full = cat(2,timespect,timespect2+max(timespect)+timespect(2)-timespect(1));
+
+time_spect_full = cat(2,timespect,timespect2);
 
 feature_1_inds = 1:size(dyadic_spectrograms_1,feature_time_ind);
 feature_2_inds = (max(feature_1_inds)+1):(max(feature_1_inds)+size(dyadic_spectrograms_2,feature_time_ind));
@@ -177,12 +187,12 @@ feature_2_inds = (max(feature_1_inds)+1):(max(feature_1_inds)+size(dyadic_spectr
 
 [COEFF, SCORE_dyn, LATENT, TSQUARED,EXPLAINED] = pca(cat(feature_time_ind,dyadic_spectrograms_1,dyadic_spectrograms_2)');
 
-index_here = 1:min(size(dyadic_spectrograms_1,2),size(dyadic_spectrograms_2,2));
+%index_here = 1:min(size(dyadic_spectrograms_1,2),size(dyadic_spectrograms_2,2));
 
 %% use other embedding approaches to find the 'most different' poses 
 pcstofit = 1:15;
-output = cat(2,(ones(1,numel(feature_1_inds(index_here)))),2*(ones(1,numel(feature_1_inds(index_here)))));
-Mdl = fitcdiscr(SCORE_dyn(cat(2,feature_1_inds(index_here),feature_2_inds(index_here)),pcstofit),output,'Crossval','on','DiscrimType','linear');
+output = cat(2,(ones(1,numel(feature_1_inds))),2*(ones(1,numel(feature_2_inds))));
+Mdl = fitcdiscr(SCORE_dyn(cat(2,feature_1_inds,feature_2_inds),pcstofit),output,'Crossval','on','DiscrimType','linear');
 fprintf('Kfold loss %f \n',Mdl.kfoldLoss)
 
 fprintf('Dimension zscores \n') 
@@ -239,10 +249,20 @@ end
 %get top 100 values of SCORE and look at videos around these timepoints
 %[vals,inds] = sort(SCORE(:,ind_zs(1)),'DESCEND');
 
-
 [vals,inds] = sort(posterior(:,2),'DESCEND');
-good_post =frames_total(time_spect_full(inds(1:1000,1))*opts.fps);
-good_pre =frames_total(time_spect_full(inds(size(inds)-1000:end,1))*opts.fps);
+
+inds_pick_post = inds(1:1000,1);
+inds_pick_pre = inds(size(inds)-1000:end,1);
+
+output_struct = [];
+output_struct.good_post_post =  frame_ex_2(time_spect_full(intersect(find(output == 2),inds_pick_post))*opts.fps);
+output_struct.good_post_pre =  frame_ex_1(time_spect_full(intersect(find(output == 1),inds_pick_post))*opts.fps);
+
+output_struct.good_pre_post =  frame_ex_2(time_spect_full(intersect(find(output == 2),inds_pick_pre))*opts.fps);
+output_struct.good_pre_pre =  frame_ex_1(time_spect_full(intersect(find(output == 1),inds_pick_pre))*opts.fps);
+
+% good_post =output_struct.good_post_post;
+% good_pre =output_struct.good_pre_pre;
 
 end
 

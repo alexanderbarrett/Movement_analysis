@@ -1,12 +1,16 @@
 
 %% plotting directory -- change this
 %mocapmasterdirectory = 'E:\Bence\Data\Motionanalysis_captures\';
-mocapmasterdirectory = '\\140.247.178.37\Jesse\Motionanalysis_captures\';
+mocapmasterdirectory = 'Y:\Jesse\Data\Motionanalysis_captures\';
 savedirectory = strcat(mocapmasterdirectory,'Plots',filesep);
 mkdir(savedirectory);
 
 %% load or create struct
-%createmocapfilestruct('Vicon8',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
+createmocapfilestruct('JDM25',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
+
+createmocapfilestruct('JDM32',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
+mocapfilestruct = loadmocapfilestruct('JDM25',mocapmasterdirectory);
+
 mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
 
 [descriptor_struct_1,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('Vicon8','Vicon8_prelesion',mocapmasterdirectory);
@@ -29,21 +33,29 @@ cluster_here = [8];
 [modular_cluster_properties] = get_modularclustproperties(mocapstruct_pre);
 [modular_cluster_properties2] = get_modularclustproperties(mocapstruct_post);
 
-[good_post,good_pre,frame_ex_1,frame_ex_2] = compare_features(mocapstruct_pre,modular_cluster_properties,mocapstruct_post,modular_cluster_properties2,'dynamics');
+predict_markers_position(mocapstruct_pre,modular_cluster_properties)
+
+[output_struct] = compare_features(mocapstruct_pre,modular_cluster_properties,mocapstruct_post,modular_cluster_properties2,'dynamics');
+
 pre_inds = 1:numel(frame_ex_1);
 post_inds = (numel(frame_ex_1)+1):(numel(frame_ex_1)+numel(frame_ex_2));
 
 
 good_post_sort = sort(good_post,'ASCEND');
 good_post_sort = unique(bsxfun(@plus,good_post_sort,(-150:150)'));
-good_post_post = intersect(good_post_sort,post_inds);
-good_post_pre = intersect(good_post,pre_inds);
 
 
 good_pre_sort = sort(good_pre,'ASCEND');
 good_pre_sort = unique(bsxfun(@plus,good_pre_sort,(-150:150)'));
-good_pre_post = intersect(good_pre_sort,post_inds);
-good_pre_pre = intersect(good_pre,pre_inds);
+
+% 
+% 
+% good_post_post = intersect(good_post_sort,post_inds);
+% good_post_pre = intersect(good_post_sort,pre_inds);
+% 
+% 
+% good_pre_post = intersect(good_pre_sort,post_inds);
+% good_pre_pre = intersect(good_pre_sort,pre_inds);
 
  dos('cd C:\Users\Jesse Marshall\Documents\GitHub\Movement_analysis\FATGUI-master\')
 MCC;

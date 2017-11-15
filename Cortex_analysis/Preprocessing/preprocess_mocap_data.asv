@@ -1,8 +1,13 @@
-function [mocap_struct] = preprocess_mocap_data(filepath_array,mocapfilestruct,descriptor_struct,mocapfiletimes,overwrite_flag,overwrite_macro_flag)
+function [mocap_struct] = preprocess_mocap_data(filepath_array,mocapfilestruct,descriptor_struct,mocapfiletimes,overwrite_flag,overwrite_macro_flag,filepath_array_htr)
 %% return a mocapstruct from filepaths
 % Jesse Marshall 9/26/2017
 
 [mocap_datecreate,sorted_mocap_serialtimes,filepath_array_sorted ] = sort_mocap_files(filepath_array,mocapfilestruct.mocapdir);
+
+if  nargin ==7
+    fprintf('processing HTR files \n')
+    [htr_struct] = concat_htr(filepath_array_htr);
+end
 
 
 %% get file directories for data that is saved or not
@@ -10,7 +15,11 @@ function [mocap_struct] = preprocess_mocap_data(filepath_array,mocapfilestruct,d
  [save_dir,~,~] = fileparts(filepath_array_sorted{1});
     preproc_save_directory = strrep(save_dir,'Generated_C3D_files','Preprocessed\');
 mkdir(preproc_save_directory);
+if nargin==7
+    macro_save_name = strcat(preproc_save_directory,descriptor_struct.vidtag,'_HTR.mat');
+else
 macro_save_name = strcat(preproc_save_directory,descriptor_struct.vidtag,'.mat');
+end
 
 if (exist(macro_save_name,'file') && ~overwrite_macro_flag)
 mocap_struct = load(macro_save_name);
@@ -195,6 +204,14 @@ mocap_struct.markers_preproc = markers_preproc;
 mocap_struct.filestartpts = filestartpts;
 
 
+%% save the htr info
+mocap_struct.limbposition = limbposition;
+mocap_struct.rotations = rotations;
+mocap_struct.translations_local = translations_local;
+mocap_struct.translations_global = translations_global;
+
+
+
 
 
 %% save this struct
@@ -294,7 +311,19 @@ mocap_struct.markercolor = mocapfilestruct.(descriptor_struct.cond).markercolor{
 mocap_struct.links = mocapfilestruct.(descriptor_struct.cond).links{descriptor_struct.day};
 mocap_struct.plotdirectory = strcat(mocapfilestruct.mocapdir,(descriptor_struct.cond),'_',num2str(descriptor_struct.day),'_',descriptor_struct.tag);
 mkdir(mocap_struct.plotdirectory)
-%save(macro_save_name,'mocap_struct','-v7.3')
+
+
+if  nargin ==7
+    fprintf('saving HTR files \n')
+    htr_fields = fieldnames(htr_struct);
+  for  mm = 1:numel(htr_fields)
+    mocap_struct.(htr_fields{mm}) = htr_struct.(htr_fields{mm});
+  end
+ 
+end
+
+fprintf('saving to
+save(macro_save_name,'mocap_struct','-v7.3')
 
 end
 %save(' ',mocap_struct)

@@ -220,5 +220,17 @@ mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descripto
 mocapfiletimes = mocapfilestruct.(descriptor_struct_1.cond).mocapdatecreate{descriptor_struct_1.day}(good_inds);
 
 
+ case 'JDM25bipost'
+descriptor_struct_1.tag = 'overnight';
+descriptor_struct_1.cond = 'BiLesion';
+descriptor_struct_1.vidtag = 'JDM25_bipost';
+
+   descriptor_struct_1.day = 7;
+   good_inds = find(cellfun(@numel,strfind(mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day},descriptor_struct_1.tag)));
+mocapfilearray = mocapfilestruct.(descriptor_struct_1.cond).mocapfiles{descriptor_struct_1.day}(good_inds(1:10));
+mocapfiletimes = mocapfilestruct.(descriptor_struct_1.cond).mocapdatecreate{descriptor_struct_1.day}(good_inds(1:10));
+
+
+
 end
 

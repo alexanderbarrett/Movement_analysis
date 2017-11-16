@@ -205,11 +205,15 @@ mocap_struct.filestartpts = filestartpts;
 
 
 %% save the htr info
-mocap_struct.limbposition = limbposition;
-mocap_struct.rotations = rotations;
-mocap_struct.translations_local = translations_local;
-mocap_struct.translations_global = translations_global;
 
+if  nargin ==7
+    fprintf('saving HTR files \n')
+    htr_fields = fieldnames(htr_struct);
+  for  mm = 1:numel(htr_fields)
+    mocap_struct.(htr_fields{mm}) = htr_struct.(htr_fields{mm});
+  end
+ 
+end
 
 
 

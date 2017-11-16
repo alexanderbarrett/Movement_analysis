@@ -70,12 +70,13 @@ plot(quatconj((htr_struct.agg_rotations_quat{7})))
 %% code for looking at joint angles
 [mocapstruct_pre] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1,mocapfiletimes,0,1,filearray);
 
-good_joints = 1:10;
+good_joints = setxor(1:10,[3,6,8]);
 corresponding_markers = [1:10,17,18];
 bad_frames_joints = unique(cat(2,mocapstruct_pre.bad_frames_agg{corresponding_markers}));
 good_frames = setxor(1:size(mocapstruct_pre.agg_rotations_quat{1},1),bad_frames_joints);
 
 rot_quat_exp = cell(1,18);
+agg_features = [];
 for mm = good_joints
     
     plot_here = mocapstruct_pre.agg_rotations_quat{mm};
@@ -107,9 +108,19 @@ clipped_joint_angle_out = hipass_clip_fragments(clipped_joint_angle,good_frames,
 plot(medfilt1(clipped_joint_angle_out.singlemarker,5))
 title(mocapstruct_pre.jointnames{mm})
 
-
+%% create aggregate features 
+ agg_features = cat(1,agg_features, medfilt1(clipped_joint_angle_out.singlemarker,5)',agg_features);
+% opts.fps =300;
+% opts.clustering_window = opts.fps./2;
+% opts.clustering_overlap = opts.fps./4;
+% [dyad_out,fr,time_clustering] = get_dyadic_spectrogram(agg_features,opts);
+% imagesc(dyad_out)
 
 end
+
+figure(44)
+plot(agg_features')
+
 
 
 

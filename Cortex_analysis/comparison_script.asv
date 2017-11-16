@@ -21,7 +21,7 @@ mocapstruct_pre = mocapstruct_pre.mocap_struct;
 [mocapstruct_post] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_2,mocapfiletimes,0,1);
 
 
-[descriptor_struct_3,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('JDM25','JDM25bipost',mocapmasterdirectory);
+[descriptor_struct_3,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('JDM25','JDM25_bipost',mocapmasterdirectory);
 [mocapstruct_post_bi] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_2,mocapfiletimes,0,1);
 
 

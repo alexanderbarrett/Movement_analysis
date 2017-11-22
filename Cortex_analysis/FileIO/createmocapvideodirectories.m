@@ -16,11 +16,23 @@ end
 
 if strcmp(ratname,'JDM25')
 mocapfilestruct = struct('PreLesion',[],'UniLesion',[]);
-mocapfilestruct.mocapdir = 'E:\Bence\Data\Motionanalysis_captures\JDM25\';
+mocapfilestruct.mocapdir = 'Y:\Jesse\Data\Motionanalysis_captures\JDM25\';
 mocapfilestruct.PreLesion.days = {'20170913\','20170914\','20170915\',...
     '20170916\','20170917\','20170918\','20170919\','20170920\','20170921\','20170922\','20170923\'};
 mocapfilestruct.UniLesion.days = {'20170924\','20170925\','20170926\','20170927\','20170928\','20170929\','20171002\','20171003\'};
 mocapfilestruct.BiLesion.days = {'20171004\','20171005\','20171006\','20171007\','20171008\','20171009\','20171010\','20171011\','20171012\','20171013\'};
+
+end
+
+
+if strcmp(ratname,'JDM32')
+mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion',[]);
+mocapfilestruct.mocapdir = 'Y:\Jesse\Data\Motionanalysis_captures\JDM32\';
+mocapfilestruct.PreLesion.days = {'20171020\','20171022\','20171023\',...
+    '20171024\','20171025\','20171026\','20171027\','20171027_2\','20171028\','20171029\','20171030\'};
+mocapfilestruct.UniLesion.days = {'20171031\','20171031_2\','20171101\','20171101_2\','20171102\','20171103\',...
+    '20171103_2\','20171104\','20171105\','20171106\','20171107\'};
+mocapfilestruct.BiLesion.days = {'20171110\','20171113\','20171113_2\','20171114\','20171115\','20171116\','20171117\','20171118\'};
 
 end
 
@@ -42,6 +54,7 @@ end
 
 
 filestruct_conds = fieldnames(mocapfilestruct);
+
 for ll = 1:numel(filestruct_conds)
     if isfield(mocapfilestruct.(filestruct_conds{ll}),'days')
    days_here = mocapfilestruct.(filestruct_conds{ll}).days;

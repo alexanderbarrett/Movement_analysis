@@ -10,6 +10,7 @@ createmocapfilestruct('JDM25',mocapmasterdirectory) %this step can take an hour,
 
 createmocapfilestruct('JDM32',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
 mocapfilestruct_JDM25 = loadmocapfilestruct('JDM25',mocapmasterdirectory);
+mocapfilestruct_JDM32 = loadmocapfilestruct('JDM32',mocapmasterdirectory);
 
 mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
 
@@ -29,16 +30,18 @@ plotfractionmissing(mocapstruct_pre)
 
 compare_plot_marker_characteristics_timerange(mocapstruct_pre,mocapstruct_pre.move_frames,mocapstruct_post,mocapstruct_post.move_frames)
 
-compare_comp_fraction_moving(mocapstruct_pre,mocapstruct_post)
+compare_comp_fraction_moving(mocapstruct_pre,mocapstruct_post_bi)
 %compare_plot_marker_characteristics(mocapstruct)
 
 %compare the eigen clusters based on specific timepoins
 cluster_here = [8];
 [modular_cluster_properties] = get_modularclustproperties(mocapstruct_pre);
 [modular_cluster_properties2] = get_modularclustproperties(mocapstruct_post);
+[modular_cluster_properties3] = get_modularclustproperties(mocapstruct_post_bi);
 
 predict_markers_position(mocapstruct_pre,modular_cluster_properties)
 predict_markers_position(mocapstruct_post,modular_cluster_properties2)
+predict_markers_position(mocapstruct_post_bi,modular_cluster_properties3)
 
 
 [output_struct] = compare_features(mocapstruct_pre,modular_cluster_properties,mocapstruct_post,modular_cluster_properties2,'dynamics');

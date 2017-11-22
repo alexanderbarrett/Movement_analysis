@@ -112,8 +112,7 @@ subplot(2,1,1)
   
     frame_last = lk;
     %clf
-    
-    
+   
     
     %% plot the video movie
     videoframe = matchedindex(find(frame_inds==lk));

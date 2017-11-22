@@ -1,4 +1,4 @@
-function [mocap_struct] = preprocess_mocap_data(filepath_array,mocapfilestruct,descriptor_struct,mocapfiletimes,overwrite_flag,overwrite_macro_flag,filepath_array_htr)
+function [mocap_struct] = preprocess_mocap_data(filepath_array,mocapfilestruct,descriptor_struct,mocapfiletimes,overwrite_flag,overwrite_macro_flag,filepath_array_htr,mocapvideodirectory)
 %% return a mocapstruct from filepaths
 % Jesse Marshall 9/26/2017
 
@@ -7,6 +7,33 @@ function [mocap_struct] = preprocess_mocap_data(filepath_array,mocapfilestruct,d
 if  nargin ==7
     fprintf('processing HTR files \n')
     [htr_struct] = concat_htr(filepath_array_htr);
+end
+
+%% currently only built for a single video directory
+if nargin == 8
+   fprintf('preprocessing the video files \n')
+   
+%% convert video file directories to mp4
+suffix = {'U','L','R'};
+cameratype_ind = 2;
+cameradirectory = strcat(mocapvideodirectory,filesep,'Camera',suffix{cameratype_ind},filesep);
+videofolders = dir(cameradirectory);
+good_directories = find(cat(1, videofolders.isdir)==1);
+
+for mm = good_directories'
+    if (numel(strfind(videofolders(mm).name,'6')))
+        good_folder = videofolders(mm).name;
+    end
+end
+
+imageseries_folder = strcat(cameradirectory,good_folder,filesep);
+
+
+%% conver the mkv files to mp4 files
+fprintf('converting mkv files \n')
+camfolder = imageseries_folder;%strcat(imageseries_folder,cameradirectory);
+read_mkv_file(camfolder,camfolder );
+
 end
 
 
@@ -260,6 +287,38 @@ ylim([0 0.5])
 xlim([0 numel(marker_names)+1])
 
 
+
+
+%% save the matched video frames
+
+
+if  nargin ==8
+   fprintf('saving video properties \n')
+mocap_struct.cameradirectory = camfolder;
+
+%% load .times file
+times_files = dir(strcat(camfolder,filesep,'*.times'));
+
+f = fopen(strcat(camfolder,filesep,times_files.name));
+float1 = fread(f,[1,100000000],'uint64');
+frame_number = numel(float1);
+
+%% synchronize .times file -- associate each frame with a frame
+offset = float1(1);
+video_frames = offset+round((0:size(markers_preproc_aligned.HeadF,1)-1)*(1000/300));
+
+matched_frames =arrayfun(@(x) find(video_frames(x)-float1>0,1,'last'),1:1000000,'UniformOutput', false);
+
+bad_frames = find(cellfun(@numel,matched_frames) == 0);
+matched_frames_aligned = cat(2,zeros(1,numel(bad_frames)),cell2mat(matched_frames));
+
+mocap_struct.matched_frames_aligned = matched_frames_aligned;
+end
+
+
+
+
+
 %% get move/not move with a simple threshold
 % veltrace = (conv(abs_velocity_antialiased(5,:),ones(1,300)./300,'same'));
 % vel_thresh = 0.008;
@@ -315,7 +374,6 @@ mocap_struct.markercolor = mocapfilestruct.(descriptor_struct.cond).markercolor{
 mocap_struct.links = mocapfilestruct.(descriptor_struct.cond).links{descriptor_struct.day};
 mocap_struct.plotdirectory = strcat(mocapfilestruct.mocapdir,(descriptor_struct.cond),'_',num2str(descriptor_struct.day),'_',descriptor_struct.tag);
 mkdir(mocap_struct.plotdirectory)
-
 
 if  nargin ==7
     fprintf('saving HTR files \n')

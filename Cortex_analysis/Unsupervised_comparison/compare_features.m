@@ -10,6 +10,8 @@ function [output_struct] = compare_features(mocapstruct_pre,mod_1,mocapstruct_po
         
     downsample = 3;
 
+    if (strcmp(comptype,'pose'))
+
     for mm = mod_1.cluster_markersets{clustering_type}    
         
  frame_ex_1 = intersect(mod_1.clustering_inds_agg{clustering_type}(1:downsample:end),mocapstruct_pre.move_frames);
@@ -19,6 +21,32 @@ function [output_struct] = compare_features(mocapstruct_pre,mod_1,mocapstruct_po
      feature_mat_1 = cat(2,feature_mat_1,mocapstruct_pre.markers_aligned_preproc.(struct_fn{mm})(frame_ex_1,:));
           feature_mat_2 = cat(2,feature_mat_2,mocapstruct_post.markers_aligned_preproc.(struct_fn{mm})(frame_ex_2,:));
     end
+    
+    else
+        %% do a hipass clip+interpolation to correct
+          feature_mat_1 = [];
+        feature_mat_2 = [];
+ frame_ex_1 = intersect(mod_1.clustering_inds_agg{clustering_type}(1:end),mocapstruct_pre.move_frames);
+    frame_ex_2 = intersect(mod_2.clustering_inds_agg{clustering_type}(1:end),mocapstruct_post.move_frames);
+     frames_total = cat(2,frame_ex_1,frame_ex_2);
+     
+     
+     params.fps = 300;
+     
+     clipped_pre =  hipass_clip_fragments(mocapstruct_pre.markers_aligned_preproc,frame_ex_1,params);
+          clipped_post =  hipass_clip_fragments(mocapstruct_post.markers_aligned_preproc,frame_ex_2,params);
+
+         for mm = mod_1.cluster_markersets{clustering_type}    
+
+     feature_mat_1 = cat(2,feature_mat_1,clipped_pre.(struct_fn{mm}));
+     feature_mat_2 = cat(2,feature_mat_2,clipped_post.(struct_fn{mm}));
+    end
+        
+        
+        
+    end
+    
+    
              % feature_mat_2 = feature_mat_1(250000:end,:);
 
     % feature_mat_1 = feature_mat_1(1:250000,:);
@@ -108,18 +136,24 @@ h = figure (444);
 subplot(4,4,ind_pick)
 plot_eigenpose_subset(reshape(nanmean(feature_mat_1(vals,:),1),3,[])',mod_2.cluster_markersets{clustering_type},mocapstruct_post.markercolor,mocapstruct_post.links,h)
 hold on
+if (ind_pick==1)
+title('no Lesion')
+end
 
 hh = figure (445);
 subplot(4,4,ind_pick)
 plot_eigenpose_subset(reshape(nanmean(feature_mat_2(vals2,:),1),3,[])',mod_2.cluster_markersets{clustering_type},mocapstruct_post.markercolor,mocapstruct_post.links,hh)
 hold on
+if (ind_pick==1)
+title('Lesion')
+end
 end
 
 
 
 %% use other embedding approaches to find the 'most different' poses 
 output = cat(2,(ones(1,numel(feature_1_inds(index_here)))),2*(ones(1,numel(feature_1_inds(index_here)))));
-Mdl = fitcdiscr(SCORE(cat(2,feature_1_inds(index_here),feature_2_inds(index_here)),1:15),output,'Crossval','on','DiscrimType','linear');
+Mdl = fitcdiscr(SCORE(cat(2,feature_1_inds(index_here),feature_2_inds(index_here)),1:min(6,size(SCORE,2))),output,'Crossval','on','DiscrimType','linear');
 fprintf('Kfold loss %f \n',Mdl.kfoldLoss)
 
 figure(44)
@@ -165,14 +199,14 @@ opts.clustering_overlap = opts.fps./4;
 nummarkershere = size(feature_mat_1,2)./3;
 
 agg_features = permute(reshape(feature_mat_1,size(feature_mat_1,1),3,[]),[1 3 2]);
-frames_ind = bsxfun(@plus,1:25:500,floor(2.28*10^5));
-offset = 75;
-
-h=figure(145);
-pictoral_animation_subset(agg_features,mocapstruct_pre,frames_ind,offset,mod_2.cluster_markersets{clustering_type},h)
-subplot(2,1,1)
-xlim([-100 1500])
-view([-1 16])
+% frames_ind = bsxfun(@plus,1:25:500,floor(2.28*10^5));
+% offset = 75;
+% 
+% h=figure(145);
+% pictoral_animation_subset(agg_features,mocapstruct_pre,frames_ind,offset,mod_2.cluster_markersets{clustering_type},h)
+% subplot(2,1,1)
+% xlim([-100 1500])
+% view([-1 16])
 
 [dyadic_spectrograms_1,fr,timespect] = get_dyadic_spectrogram(feature_mat_1(:,:)',opts);
 [dyadic_spectrograms_2,fr,timespect2] = get_dyadic_spectrogram(feature_mat_2(:,:)',opts);
@@ -186,11 +220,12 @@ feature_2_inds = (max(feature_1_inds)+1):(max(feature_1_inds)+size(dyadic_spectr
 
 
 [COEFF, SCORE_dyn, LATENT, TSQUARED,EXPLAINED] = pca(cat(feature_time_ind,dyadic_spectrograms_1,dyadic_spectrograms_2)');
-
+disp('variance explained')
+disp(EXPLAINED(1:100))
 %index_here = 1:min(size(dyadic_spectrograms_1,2),size(dyadic_spectrograms_2,2));
 
 %% use other embedding approaches to find the 'most different' poses 
-pcstofit = 1:15;
+pcstofit = 1:25;
 output = cat(2,(ones(1,numel(feature_1_inds))),2*(ones(1,numel(feature_2_inds))));
 Mdl = fitcdiscr(SCORE_dyn(cat(2,feature_1_inds,feature_2_inds),pcstofit),output,'Crossval','on','DiscrimType','linear');
 fprintf('Kfold loss %f \n',Mdl.kfoldLoss)

@@ -79,6 +79,7 @@ dir_base = strcat(mocapfilestruct.mocapdir,strcat(strrep(mocapfilestruct.(descri
 file_folders = dir(dir_base);
 directories = find(cat(1,file_folders.isdir)==1);
 good_folder = [];
+
 for mm = directories'
 if (numel(strfind(file_folders(mm).name,descriptor_struct_1.vidtag)))
     good_folder = file_folders(mm).name;
@@ -86,6 +87,7 @@ end
 end
 mocapvideodirectory =  strcat(dir_base,good_folder);
  
+
 
     case 'Vicon3_htr'
 descriptor_struct_1.tag = 'amph';

@@ -50,40 +50,24 @@ MCC;
 
 testframes = 100000:200000;
 
-outputstruct_bipost = load('OutputStruct_bilDLS.mat');
-outputstruct_caff = load('OutputStruct_Vicon8_caff.mat');
+outputstruct_bipost = load('OutputStruct_biDLS.mat');
+outputstruct_bipost = load('OutputStruct_Vicon8ca.mat');
 
-fulloutput_caff = fillannotationgaps(outputstruct_caff.output.GlobalBehavior.FaceWipes,   20);
-fulloutput_DLS = fillannotationgaps(outputstruct_bipost.output.GlobalBehavior.Walk,   20);
+output2 = load( 'Backup_OutPutStruct\Backup_OutputStruct_November-16-2017-14-21-33.mat')
+fulloutput = fillannotationgaps(outputstruct.output.GlobalBehavior.Walk,20);
+fulloutput2 = fillannotationgaps(outputstruct.output.GlobalBehavior.Walk,20);
 
-% 
-% output2 = load( 'Backup_OutPutStruct\Backup_OutputStruct_November-16-2017-14-21-33.mat')
-% fulloutput = fillannotationgaps(outputstruct.output.GlobalBehavior.Walk,20);
-% fulloutput2 = fillannotationgaps(outputstruct.output.GlobalBehavior.Walk,20);
-% 
-% fulloutput= fillannotationgaps(outputstruct.output.GlobalBehavior.RearUp,10);
-% fulloutput= fillannotationgaps(outputstruct.output.GlobalBehavior.WetDogShake,   20);
-% 
-% fulloutput= fillannotationgaps(outputstruct.output.GlobalBehavior.RBodyGroom,   20);
-% fulloutput= fillannotationgaps(outputstruct.output.GlobalBehavior.FaceWipes,   20);
+fulloutput= fillannotationgaps(outputstruct.output.GlobalBehavior.RearUp,10);
+fulloutput= fillannotationgaps(outputstruct.output.GlobalBehavior.WetDogShake,   20);
 
-animate_markers_aligned_fullmovie(mocapstruct_caff,fulloutput_caff(1:10:end))
-animate_markers_aligned_fullmovie(mocapstruct_concatenated,fulloutput_DLS(1:10:end))
+fulloutput= fillannotationgaps(outputstruct.output.GlobalBehavior.RBodyGroom,   20);
+fulloutput= fillannotationgaps(outputstruct.output.GlobalBehavior.FaceWipes,   20);
 
-
+animate_markers_aligned_fullmovie(mocapstruct,fulloutput(1:10:end))
 figure(77)
-subplot(2,1,1)
-plot(mocapstruct_caff.markers_aligned_preproc.HeadF(fulloutput_caff,3),'b')
+plot(mocapstruct.markers_aligned_preproc.KneeL(fulloutput,3),'b')
 hold on
-plot(mocapstruct_caff.markers_aligned_preproc.ShoulderR(fulloutput_caff,3),'r')
-hold off
-
-subplot(2,1,2)
-plot(mocapstruct_concatenated.markers_aligned_preproc.HipL(fulloutput_DLS,3),'b')
-hold on
-plot(mocapstruct_concatenated.markers_aligned_preproc.HipR(fulloutput_DLS,3),'r')
-hold off
-
+plot(mocapstruct.markers_aligned_preproc.KneeR(fulloutput,3),'r')
 
 
 plot(mocapstruct.markers_aligned_preproc.ElbowR(fulloutput,3),'c')
@@ -92,5 +76,6 @@ plot(mocapstruct.markers_aligned_preproc.ElbowL(fulloutput,3),'g')
 plot(mocapstruct.markers_aligned_preproc.HeadF(fulloutput,3),'r')
 %plot(mocapstruct.markers_aligned_preproc.Offset1(fulloutput,3),'c')
 
+hold off
 
 

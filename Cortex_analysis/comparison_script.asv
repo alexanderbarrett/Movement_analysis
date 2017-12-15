@@ -32,7 +32,7 @@ ov_meta = 0;
 
 %vicon8 
 [descriptor_struct_1,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('Vicon8','Vicon8_prelesion',mocapmasterdirectory);
-[mocapstructcell{9}] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1,mocapfiletimes,0,0);
+[mocapstructcell{9}] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1,mocapfiletimes,0,1);
 
 [descriptor_struct_2,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('Vicon8','Vicon8_dlslesion_late',mocapmasterdirectory);
 [mocapstructcell{10}] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_2,mocapfiletimes,0,ov_meta);
@@ -151,7 +151,7 @@ comp_list_task_32 = [19,20];
 comp_list_all_25 = [25,26];
 comp_list_all_32 = [23,24];
 comp_list_25_mix = [4,14,22,6,15,21];%[4:8,14];
-comp_list_32_mix = [2,18,20,1,17,19];%[4:8,14];
+comp_list_32_mix = [1,18,20,2,17,19];%[4:8,14];
 
 %% get the desired recordings
 

@@ -77,7 +77,9 @@ hold off
 xcorr_chunk = 10^5;
 lever_shifted = lever_thresholded;
 analog_shifted = analog;
+analog_number = numel(analog.(fn_analog{1}));
 
+if analog_number <= marker_number
 for jk =1:xcorr_chunk:numel(lever_thresholded)
     
     
@@ -125,6 +127,7 @@ for mm = 1:numel(fn_analog)
 end
 
 
+end
 end
 analog = analog_shifted;
 lever_thresholded = lever_shifted;

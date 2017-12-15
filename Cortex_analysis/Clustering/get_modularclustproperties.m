@@ -8,10 +8,10 @@ function [modular_cluster_properties] = get_modularclustproperties(mocapstruct)
 %    cluster_markersets = {[1,2,3],[6,13,11,12],[6,14,15,16],[1,2,3,4,5,6,7,8,9,10],[5,9,10,17,18],[5,9,10,17,18],[1:numel(mocapstruct.marker_names)]};
 %else
     %head, L arm R arm, head and hips, hips, full
-    cluster_markersets = {[1:3],[1:10,17,18],[4,7,11:13],[4,7,14:16],[6,8,9,18,19],[6,10,17,20],[6,8,9,10,17:20],...
-        [1:numel(mocapstruct.markernames)]};
+    cluster_markersets = {[1:4],[1:10,17,18],[4,7,11:13],[4,7,14:16],[6,8,9,18,19],[6,10,17,20],[6,8,9,10,17:20],...
+        [1:numel(mocapstruct.markernames)],[4,5,6,7,8,9,10],};
     % cluster_markersets = {[1,2,3],[6,11,12,13],[5,9,10,17,18],[6,14,15,16],[4,5,6,7,8],[1:numel(marker_names)]};
-    subcluster_names = {'head','axial','Larm','Rarm','L leg','R leg','Both legs','Global'};
+    subcluster_names = {'head','axial','Larm','Rarm','L leg','R leg','Both legs','Global','Trunk'};
     
     % subcluster_names = {'head','Larm','Hips and knees','Rarm','Spine','Global'};
     %        cluster_markersets = {[1:numel(marker_names)],[1,2,3],[3,4,5,6,7],[5,6,7,8],[1,2,3,9,10]};

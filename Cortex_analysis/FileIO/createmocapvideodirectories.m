@@ -98,7 +98,7 @@ end
            
            %% move the folders and transfer the files
            videosubscripts = {'CameraL','CameraU','CameraR'};
-               videopathbase =  '\\MOCAPRIG\MOCAP_training\Testing\';
+               videopathbase =  'X:\Jesse\Data\VideoFiles\';
 
                %get the creation date of a file with the unique name
 

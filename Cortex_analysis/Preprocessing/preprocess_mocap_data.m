@@ -50,6 +50,12 @@ end
 
 if (exist(macro_save_name,'file') && ~overwrite_macro_flag)
 mocap_struct = load(macro_save_name);
+if (~isfield(mocap_struct,'markernames'))
+mocap_struct = mocap_struct.mocap_struct;
+end
+
+[mocap_struct] = assign_modular_annotation_properties(mocap_struct,2);
+
 else
 % btkCloseAcquisition(acq);
 fps = 300;
@@ -258,9 +264,11 @@ mocap_struct_agg = load_preprocessed_data(filepath_array_sorted);
 %% level and get the aligned
 %% make sure the z-axis is pointed up
 fprintf('leveling the marker set %f \n')
+if numel(fieldnames( mocap_struct_agg.markers_preproc)) == 20
 markers_preproc = level_markers(mocap_struct_agg.markers_preproc);
-
-
+else
+markers_preproc = mocap_struct_agg.markers_preproc;
+end
 %% get the preprocessed and aligned markrs
 [~,markers_preproc_aligned,mean_position,rotation_matrix] = align_hands_elbows(mocap_struct_agg.markers_preproc,fps);
 marker_names = fieldnames(mocap_struct_agg.markers_preproc );
@@ -307,12 +315,15 @@ frame_number = numel(float1);
 offset = float1(1);
 video_frames = offset+round((0:size(markers_preproc_aligned.HeadF,1)-1)*(1000/300));
 
-matched_frames =arrayfun(@(x) find(video_frames(x)-float1>0,1,'last'),1:1000000,'UniformOutput', false);
+matched_frames =arrayfun(@(x) find(video_frames(x)-float1>0,1,'last'),1:size(mean_position,1),'UniformOutput', false);
 
 bad_frames = find(cellfun(@numel,matched_frames) == 0);
 matched_frames_aligned = cat(2,zeros(1,numel(bad_frames)),cell2mat(matched_frames));
 
 mocap_struct.matched_frames_aligned = matched_frames_aligned;
+
+%% load in all the video files and save to the structure
+%mocap_struct.video_files = 
 end
 
 
@@ -373,6 +384,11 @@ mocap_struct.mocapfiletimes = mocapfiletimes;
 mocap_struct.markercolor = mocapfilestruct.(descriptor_struct.cond).markercolor{descriptor_struct.day};
 mocap_struct.links = mocapfilestruct.(descriptor_struct.cond).links{descriptor_struct.day};
 mocap_struct.plotdirectory = strcat(mocapfilestruct.mocapdir,(descriptor_struct.cond),'_',num2str(descriptor_struct.day),'_',descriptor_struct.tag);
+
+if numel(fieldnames( mocap_struct_agg.markers_preproc)) == 20
+[mocap_struct] = assign_modular_annotation_properties(mocap_struct,2);
+end
+
 mkdir(mocap_struct.plotdirectory)
 
 if  nargin ==7

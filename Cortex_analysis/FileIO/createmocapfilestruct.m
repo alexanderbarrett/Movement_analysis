@@ -29,7 +29,7 @@ end
 end
 end
 
-
+%-------------------------
 if strcmp(ratname,'JDM25')
 
 mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion',[]);
@@ -65,6 +65,34 @@ end
 
 
 
+%-------------------------
+if strcmp(ratname,'JDM21')
+
+mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion',[]);
+mocapfilestruct.mocapdir = strcat(mocapmasterdirectory,ratname,filesep);
+mocapfilestruct.PreLesion.days = {'20171026\Generated_C3D_files\','20171027\Generated_C3D_files\'};
+
+
+%% colos and links
+   [markercolor,links] = day_loading_header('vicon8_20marker');
+
+filestruct_conds = fieldnames(mocapfilestruct);
+for ll = 1:numel(filestruct_conds)
+    if isfield(mocapfilestruct.(filestruct_conds{ll}),'days')
+       days_here = mocapfilestruct.(filestruct_conds{ll}).days;
+   mocapfilestruct.(filestruct_conds{ll}).links = cell(1,numel(days_here));
+      mocapfilestruct.(filestruct_conds{ll}).markercolor = cell(1,numel(days_here));
+for jj = 1:numel(days_here)
+     mocapfilestruct.(filestruct_conds{ll}).links{jj} = links;
+      mocapfilestruct.(filestruct_conds{ll}).markercolor{jj} = markercolor;
+end
+end
+end
+end
+
+
+
+
 if strcmp(ratname,'JDM32')
 
 mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion',[]);
@@ -75,8 +103,8 @@ mocapfilestruct.PreLesion.days = {'20171020\Generated_C3D_files\','20171022\Gene
 mocapfilestruct.UniLesion.days = {'20171031\Generated_C3D_files\','20171031_2\Generated_C3D_files\','20171101\Generated_C3D_files\',...
     '20171101_2\Generated_C3D_files\','20171102\Generated_C3D_files\','20171103\Generated_C3D_files\','20171104\Generated_C3D_files\',...
     '20171105\Generated_C3D_files\','20171106\Generated_C3D_files\','20171107\Generated_C3D_files\','20171108\Generated_C3D_files\'};
-mocapfilestruct.BiLesion.days = {'20171109\Generated_C3D_files\','20171110\Generated_C3D_files\','20171113\Generated_C3D_files\',...
-    '20171114\Generated_C3D_files\'};
+mocapfilestruct.BiLesion.days = {'20171109\Generated_C3D_files\','20171110\Generated_C3D_files\','20171113\Generated_C3D_files\','20171113_2\Generated_C3D_files\',...
+    '20171114\Generated_C3D_files\',  '20171115\Generated_C3D_files\',  '20171116\Generated_C3D_files\',  '20171117\Generated_C3D_files\',  '20171118\Generated_C3D_files\'};
 
 
 %% colos and links

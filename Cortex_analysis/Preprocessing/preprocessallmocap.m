@@ -9,6 +9,8 @@ mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
 mocapfilestruct = loadmocapfilestruct('JDM25',mocapmasterdirectory);
  case 'Vicon3'
 mocapfilestruct = loadmocapfilestruct('Vicon3',mocapmasterdirectory);
+  case 'JDM32'
+mocapfilestruct = loadmocapfilestruct('JDM25',mocapmasterdirectory);
 end
 mocapvideodirectory = [];
 %% get the desired files

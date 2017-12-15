@@ -12,12 +12,15 @@ mkdir(savedirectory);
 %createmocapfilestruct('Vicon8',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
 mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
 [descriptor_struct_1,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('Vicon8','Vicon8_videotest',mocapmasterdirectory);
-[mocapstruct_social_2] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1,mocapfiletimes,0,1,[],mocapvideodirectory);
 
-[modular_cluster_properties_social] = get_modularclustproperties(mocapstruct_social);
+[descriptor_struct_1,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('Vicon8','Vicon8_caff',mocapmasterdirectory);
+
+[mocapstruct_caff] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1,mocapfiletimes,0,0,[],mocapvideodirectory);
+
+[modular_cluster_properties_social] = get_modularclustproperties(mocapstruct_social_2);
 
 
-[modular_cluster_properties_caff] = get_modularclustproperties(mocapstruct_social);
+[modular_cluster_properties_social] = get_modularclustproperties(mocapstruct_social_2);
 
 %animate_markers_aligned_fullmovie(mocapstruct_social,modular_cluster_properties_social.clustering_inds_agg{2}(1:20:end))
 
@@ -66,7 +69,7 @@ mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
 
 
 
-  time_subset = find( mocapstruct_social.markers_preproc.HeadF(:,3)>160);
+  time_subset = find( mocapstruct_social_2.markers_preproc.HeadF(:,3)>160);
 
 time_intersect = intersect(modular_cluster_properties_social.clustering_inds_agg{2},time_subset);
 
@@ -78,13 +81,33 @@ time_intersect = intersect(modular_cluster_properties_social.clustering_inds_agg
                 
                 
                  
-    filename = '\\olveczky.rc.fas.harvard.edu\Jesse\Data\Motionanalysis_captures\Vicon8\20170821\Preprocessed\social.mat';
+    filename = '\\olveczky.rc.fas.harvard.edu\Jesse\Data\Motionanalysis_captures\Vicon8\20170821\Preprocessed\social_2.mat';
     mocapstruct_social = load(filename);
     
+    %load in the motion capture struct the field 'matched frames aligned'
+    %defines the corresponding videoframe for each motion capture frame.
+    %The video is at 50 Hz MOCAP at 300 Hz, so multiple motion capture
+    %frames match onto each video frame. In actuality, there is a slight
+    %mismatch that occurs every 30 minutes (540000 mocap frames) that is
+    %corrected for below. You can just start with the first 540000 frames,
+    %where this isn't an issue. 
+    mocapstruct_caff = load('caff.mat');
     
-                
-M= animate_markers_aligned_fullmovie_syncedvideo(mocapstruct_social,(1:10:10000),...
-    mocapstruct_social_2.cameradirectory,mocapstruct_social_2.matched_frames_aligned(1:10:10000));
+    % change the videodirectory
+    mocapstruct_caff.cameradirectory = INSERT VIDEODIRECTORY HERE
+    %this selects the base frames to start visualization from
+    base = 1500000;            
+    %this defines a compensation for an odd shift that occurs every 540000
+    %(30 minutes)
+    %frames that I am still looking into. The data is synchronized enough
+    %to use, or you can just start with the first 30 minutes
+   offset = 780*floor(base./540000); 
+   % this is a visualization of the movies. 
+M= animate_markers_aligned_fullmovie_syncedvideo(mocapstruct_caff,-offset +(base:10:(base+10000)),...
+    mocapstruct_caff.cameradirectory,mocapstruct_caff.matched_frames_aligned(base:10:(base+10000)));
+
+
+
 
    writeVideo(v,M)
                                     close(v)

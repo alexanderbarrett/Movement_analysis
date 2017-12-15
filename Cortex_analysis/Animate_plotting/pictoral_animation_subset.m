@@ -2,7 +2,7 @@ function pictoral_animation_subset(agg_features,mocapstruct,frames_ind,offset,cl
 
 
 eigenpose = squeeze(agg_features(1,:,:));
-subplot(2,1,1)
+%subplot(2,1,1)
  hold on
     set(h,'Color','k')
     plot3( squeeze(eigenpose(1,1)),...
@@ -64,8 +64,8 @@ eigenpose(:,1) = eigenpose(:,1) + offset*(find(frames_ind == mm));
     
 end
 
-
-subplot(2,1,2)
-plot(agg_features(frames_ind(1):frames_ind(end),:,3))
+% 
+% subplot(2,1,2)
+% plot(agg_features(frames_ind(1):frames_ind(end),:,3))
 
 end

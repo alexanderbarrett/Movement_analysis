@@ -27,11 +27,12 @@ params.fps = fps;
 [marker_clipped,clipped_index] = hipass_clip_fragments(marker_here,goodframes,params);
 % figure(44)
 % plot(marker_clipped.singlemarker)
+pwelch_no = 1;
 
 
 P_sum = [];
 for mm = 1:3
-[Pxx,fxx] = pwelch((marker_clipped.singlemarker(:,mm)),fps*5,floor(0.5*fps),fps*5,fps,'onesided');
+[Pxx,fxx] = pwelch((marker_clipped.singlemarker(:,mm)),fps*pwelch_no,floor(0.5*fps),fps*pwelch_no,fps,'onesided');
 if (mm == 1)
     P_sum = Pxx;
 else
@@ -55,7 +56,7 @@ plot(marker_clipped2.singlemarker)
 %[marker_clipped2,clipped_index] = hipass_clip(marker_here2,badframeintersect2,params);
 P_sum2 = [];
 for mm = 1:3
-[Pxx2,fxx] = pwelch((marker_clipped2.singlemarker(:,mm)),fps*5,floor(0.5*fps),fps*5,fps,'onesided');
+[Pxx2,fxx] = pwelch((marker_clipped2.singlemarker(:,mm)),fps*pwelch_no,floor(0.5*fps),fps*pwelch_no,fps,'onesided');
 if (mm == 1)
     P_sum2 = Pxx2;
 else
@@ -66,14 +67,17 @@ end
 
 figure(200)
 subplot_tight(subplot_row,subplot_cols,ll)
-plot(fxx,log10(P_sum))
+plot(fxx,log10(P_sum),'b')
 hold on
-plot(fxx,log10(P_sum2))
+plot(fxx,log10(P_sum2),'r')
 hold off
 xlim([1 50])
 ylabel('SP ')
 xlabel('Freq')
 title(mocapstruct.markernames{ll})
+if ll == 4
+legend('input1','input2','location','North')
+end
 print('-dpng',strcat(mocapstruct.plotdirectory,'MarkerPSDs_move_tr.png'))
 
 %xlim([3.910*10^6/300 3.950*10^6/300])

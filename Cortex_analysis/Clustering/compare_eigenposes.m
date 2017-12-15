@@ -53,6 +53,7 @@ plot_eigenpose_subset(eigenpose2',modular_cluster_properties2.cluster_markersets
     end  
     fig = gcf;
 fig.InvertHardcopy = 'off';
+title('white is pre')
     view(90,90) 
   print('-dpng',strcat(mocapstruct.plotdirectory,'Eigenpose_overhead_comp.png')) 
    view(0,0) 

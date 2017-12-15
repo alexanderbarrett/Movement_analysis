@@ -11,7 +11,7 @@ concat_trace = (cat(1,markers_pre_clipped.(mocapstruct_pre.markernames{marker_vi
     markers_post_clipped.(mocapstruct_pre.markernames{marker_view})(:,:)));
 
 time_1 = 1:size(markers_pre_clipped.(mocapstruct_pre.markernames{marker_view}),1);
-time_2 = bsxfun(@plus,1:size(markers_post_clipped.(mocapstruct_pre.markernames{marker_view}),1),(time_1(end)))
+time_2 = bsxfun(@plus,1:size(markers_post_clipped.(mocapstruct_pre.markernames{marker_view}),1),(time_1(end)));
 
 
 

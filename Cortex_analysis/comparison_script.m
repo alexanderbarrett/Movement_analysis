@@ -6,11 +6,12 @@ savedirectory = strcat(mocapmasterdirectory,'Plots',filesep);
 mkdir(savedirectory);
 
 %% load or create struct
-%createmocapfilestruct('JDM25',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
+createmocapfilestruct('JDM25',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
 %createmocapfilestruct('JDM21',mocapmasterdirectory) 
 mocapfilestruct_JDM21 = loadmocapfilestruct('JDM21',mocapmasterdirectory);
 
-%createmocapfilestruct('JDM32',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
+
+createmocapfilestruct('JDM32',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
 mocapfilestruct_JDM25 = loadmocapfilestruct('JDM25',mocapmasterdirectory);
 mocapfilestruct_JDM32 = loadmocapfilestruct('JDM32',mocapmasterdirectory);
 mocapfilestruct_Vicon8 = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
@@ -25,7 +26,9 @@ mocapstructcell = cell(1,10);
 
 ov_meta = 0;
 
-
+descriptor_struct = get_mocap_files_table(2);
+ [descriptor_struct_1,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] = get_mocap_files_shortened(descriptor_struct,mocapmasterdirectory);
+ 
 %vicon8 
 [descriptor_struct_1,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] =  get_mocap_files('JDM21','JDM21',mocapmasterdirectory);
 [mocapstruct_21] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1,mocapfiletimes,0,1);

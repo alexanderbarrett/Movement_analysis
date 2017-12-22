@@ -1,5 +1,5 @@
 %% create all masks for a set of directories
-function createmasks(camera_base_agg,numcameras)
+function createmasks(camera_base_agg,numcameras,overwriteflag)
 
 
 
@@ -9,10 +9,15 @@ for klk = 1:numel(camera_base_agg)
     for cameratype_ind = 1:numcameras
         suffix = {'U','L','R'};
         cameradirectory = strcat(camera_base_agg{klk},filesep,'Camera',suffix{cameratype_ind});
+        %if extension exist, lists subdirectories
+        if exist(cameradirectory,'dir')
+            listing = dir(cameradirectory);
+            cameradirectory = strcat(cameradirectory,filesep,listing(3).name,filesep);
+        
         imageseries_folder = cameradirectory;
         
         mask_filename = strcat(cameradirectory,filesep,'mask_vals.mat');
-        if (~exist(mask_filename,'file'))
+        if (~exist(mask_filename,'file') || overwriteflag)
             
             %% conver the mkv files to mp4 files
             fprintf('converting mkv files \n')
@@ -59,6 +64,7 @@ for klk = 1:numel(camera_base_agg)
             
             
         end
+    end
     end
     end
 end

@@ -1,10 +1,14 @@
 function [descriptor_struct_1,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] = get_mocap_files(rat,save_tag,mocapmasterdirectory)
-
+%% INPUTS
+% rat:
+%save_tag: 
+%mocapmasterdir
+%% OUTPUTS
 
 switch rat
     case 'Vicon3'
 mocapfilestruct = loadmocapfilestruct('Vicon3',mocapmasterdirectory);
-mocapfilestruct.mocapdir = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon3\';
+%mocapfilestruct.mocapdir = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon3\';
 
     case 'Vicon8'
 mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);

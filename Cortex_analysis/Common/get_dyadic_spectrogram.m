@@ -2,7 +2,7 @@ function [dyad_out,fr,time_clustering] = get_dyadic_spectrogram(agg_features,opt
 
 %% set the number of voices/octaves for the GMM
 numVoices = 10;
-numOctave = 3;
+numOctave = 5;
 
 %% set wavelet properties
 wname = 'gaus1';

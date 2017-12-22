@@ -25,47 +25,63 @@ mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
 %animate_markers_aligned_fullmovie(mocapstruct_social,modular_cluster_properties_social.clustering_inds_agg{2}(1:20:end))
 make_cnn_features(mocapvideodirectory)
 
-%% convert video file directories to mp4
-% suffix = {'U','L','R'};
-% cameratype_ind = 2;
-% cameradirectory = strcat(mocapvideodirectory,filesep,'Camera',suffix{cameratype_ind},filesep);
-% videofolders = dir(cameradirectory);
-% good_directories = find(cat(1, videofolders.isdir)==1);
-% 
-% for mm = good_directories'
-%     if (numel(strfind(videofolders(mm).name,'6')))
-%         good_folder = videofolders(mm).name;
-%     end
-% end
-% 
-% imageseries_folder = strcat(cameradirectory,good_folder,filesep);
-% pre
-% 
-% %% conver the mkv files to mp4 files
-% fprintf('converting mkv files \n')
-% camfolder = imageseries_folder;%strcat(imageseries_folder,cameradirectory);
-% read_mkv_file(camfolder,camfolder );
-% 
-% 
-% %% load .times file
-% %.times file
-% times_files = dir(strcat(camfolder,filesep,'*.times'));
-% 
-% f = fopen(strcat(camfolder,filesep,times_files.name));
-% float1 = fread(f,[1,100000000],'uint64');
-% frame_number = numel(float1);
-% 
-% 
-% 
-% %% synchronize .times file -- associate each frame with a frame
-% offset = float1(1);
-% video_frames = offset+round((0:size(mocapstruct_social.markers_preproc.HeadF,1)-1)*(1000/300));
-% 
-% matched_frames =arrayfun(@(x) find(video_frames(x)-float1>0,1,'last'),1:1000000,'UniformOutput', false);
-% 
-% bad_frames = find(cellfun(@numel,matched_frames) == 0);
-% matched_frames_aligned = cat(2,zeros(1,numel(bad_frames)),cell2mat(matched_frames));
-% 
+
+videofeatures_agg = load('Y:\Jesse\Data\Motionanalysis_captures\Vicon8\20170822\Recording_day7_caffeine\CameraR\636389836429298895\videofeatures_outputlayer1_R.mat');
+
+
+
+%% If the features are saved as separate files 
+%  videofilenames = dir(strcat(videofeatures_directory{lk},filesep,feature_tag));
+%         % videofilenames = dir(strcat(videofeatures_directory{lk},filesep,videostart,'_',tag));
+%         fprintf('Loading video files for camera %f \n',lk)
+%         videofeatures_agg = [];
+%         load_inds = zeros(1,numel(videofilenames));
+%         for ll= 1:numel(videofilenames)
+%             % thanks Jan Simon!
+%             Str = videofilenames(ll).name;
+%             Key   = strrep(feature_tag,'*','');
+%             Index = strfind(Str, Key);
+%             load_inds(ll) = sscanf(Str(Index(1) + length(Key):end), '%g', 1);
+%         end
+%         [~,ind_to_load] = sort(load_inds,'ascend');
+%         
+%         for ll = ind_to_load
+%             fprintf('loading file %s \n',videofilenames(ll).name);
+%             test = load(strcat(videofeatures_directory{lk},filesep,videofilenames(ll).name));
+%             
+%             fieldname_here = fieldnames(test);
+%             [~,fieldagg] = max(size(getfield(test,fieldname_here{1})));
+%             videofeatures_agg = cat(fieldagg,videofeatures_agg, getfield(test,fieldname_here{1}));
+%         end
+
+
+ %% take precautions here and above to definte the correct dimension
+        [~,fieldmax] = max(size(squeeze(videofeatures_agg)));
+        if (fieldmax == 1)
+            videofeatures_agg = videofeatures_agg';
+        end
+        
+        videofeatures_here = squeeze(reshape(videofeatures_agg.scores_intermediate,[],size(videofeatures_agg.scores_intermediate,4)));
+        fprintf('finished loading video files \n')
+        
+        original_length = size(videofeatures_here,2);
+        %for screw up
+      %  frames_to_analyze = min(original_length,70000);
+        
+        %videofeatures_here = videofeatures_here(:,1: frames_to_analyze);
+        
+        %get the PCs of the features
+        [coeff,score,latent,tsquared,explained] = pca(squeeze(videofeatures_here)');
+        video_pc_traces = score';
+        %video_pc_traces = videofeatures_here;
+        %resample the pcs
+        num_pcs = 150;
+        
+        
+
+
+
+
 
 
 

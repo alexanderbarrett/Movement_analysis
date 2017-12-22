@@ -36,7 +36,7 @@ for mk = looplist
     for lk =1:pixellist.NumObjects
         %params.min_frames;
 
-        if (numel(pixellist.PixelIdxList{lk})>60) % at least 200 ms consecutive good tracking to be used
+        if (numel(pixellist.PixelIdxList{lk})>=1) % at least 200 ms consecutive good tracking to be used -- removed to facilitate other comparisons
         for sk = 1:3
                 
         frame_fragment = filtfilt(f1_hipass,f2_hipass,marker_clipped.(markernames{mk})(pixellist.PixelIdxList{lk},sk)-...

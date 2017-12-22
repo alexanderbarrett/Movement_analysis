@@ -9,14 +9,58 @@ savedirectory = strcat(mocapmasterdirectory,'Plots',filesep);
 mkdir(savedirectory);
 
 %% load or create struct
-createmocapfilestruct('Vicon8',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
+%createmocapfilestruct('Vicon8',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
 loadmocapfilestruct('Vicon8',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
 
 mocapfilestruct = loadmocapfilestruct('JDM25',mocapmasterdirectory);
 
 %alternate: Vicon8_caff, Vicon8_dlslesion
 [descriptor_struct_1,mocapfilearray1,mocapfilestruct1,mocapvideodirectory,mocapfiletimes1] =  get_mocap_files('Vicon8','Vicon8_caff',mocapmasterdirectory);
-[mocapstruct_caff] = preprocess_mocap_data( mocapfilearray1,mocapfilestruct1,descriptor_struct_1,mocapfiletimes1,1,1);
+[mocapstruct_caff] = preprocess_mocap_data( mocapfilearray1,mocapfilestruct1,descriptor_struct_1,mocapfiletimes1,0,0);
+ML_features = get_supervised_features(mocapstruct_caff,mocapstruct_caff.modular_cluster_properties.clustering_inds_agg{2},2);
+
+subset = 1:100:100*10000;%size(ML_features.pose_score,1);
+figure(55)
+plot3(ML_features.pose_score(subset,1),ML_features.pose_score(subset,2),ML_features.pose_score(subset,3),'+','MarkerSize',1)
+mappedX = tsne(ML_features.pose_score(subset,:));
+figure(56)
+plot(mappedX(:,1),mappedX(:,2),'+')
+figure(57)
+plot3(mappedX(:,1),mappedX(:,2), ML_features.pose_window_sd(1,subset,1),'+')
+ML_features.pose_score
+
+
+
+framesubset = intersect(mocapstruct_caff.modular_cluster_properties.clustering_inds_agg{2},mocapstruct_caff.modular_cluster_properties.clipped_index{2});
+framesubset_true = intersect(mocapstruct_caff.modular_cluster_properties.clustering_inds_agg{2},mocapstruct_caff.modular_cluster_properties.clipped_index{2});
+
+framesubset = framesubset(subset);
+
+
+
+middleposes = framesubset(intersect((intersect(find(mappedX(:,1)>-50),find(mappedX(:,2)>50))),...
+    (intersect(find(mappedX(:,1)<300),find(mappedX(:,2)>103)))));
+
+subsethere = framesubset(intersect(find(mappedX(:,1)>-200),find(mappedX(:,2)<-100)));
+animate_markers_aligned_fullmovie(mocapstruct_caff,subsethere)
+
+
+[descriptor_struct_1,mocapfilearray1,mocapfilestruct1,mocapvideodirectory,mocapfiletimes1] =  get_mocap_files('Vicon8','Vicon8_prelesion',mocapmasterdirectory);
+[mocapstruct_prelesion] = preprocess_mocap_data( mocapfilearray1,mocapfilestruct1,descriptor_struct_1,mocapfiletimes1,0,0);
+ML_features_prel = get_supervised_features(mocapstruct_prelesion,mocapstruct_prelesion.modular_cluster_properties.clustering_inds_agg{2},2);
+
+
+
+[descriptor_struct_1,mocapfilearray1,mocapfilestruct1,mocapvideodirectory,mocapfiletimes1] =  get_mocap_files('JDM25','JDM25caff',mocapmasterdirectory);
+[mocapstruct_caff2] = preprocess_mocap_data( mocapfilearray1,mocapfilestruct1,descriptor_struct_1,mocapfiletimes1,0,0);
+ML_features_caff2 = get_supervised_features(mocapstruct_caff2,mocapstruct_caff2.modular_cluster_properties.clustering_inds_agg{2},2);
+
+
+figure(55)
+plot3(ML_features.pose_score(subset,1),ML_features.pose_score(subset,2),ML_features.pose_score(subset,4),'+b','MarkerSize',1)
+hold on
+plot3(ML_features_caff2.pose_score(subset,1),ML_features_caff2.pose_score(subset,2),ML_features_caff2.pose_score(subset,4),'+r','MarkerSize',1)
+hold off
 
 [descriptor_struct_1,mocapfilearray1,mocapfilestruct1,mocapvideodirectory,mocapfiletimes1] =  get_mocap_files('JDM25','JDM25bipost',mocapmasterdirectory);
 [mocapstruct_concatenated] = preprocess_mocap_data( mocapfilearray1,mocapfilestruct1,descriptor_struct_1,mocapfiletimes1,0,0);
@@ -67,7 +111,7 @@ fulloutput_DLS_cat = mergeStructs_JDM(outputstruct_bipost.output.GlobalBehavior,
 
 
 %% select the behavior to examine
-compare_string = 'Walk';
+compare_string = 'LBodyGroom';
 behavior_list = {'Walk','WetDogShake','FaceWipe','RearUp'};
 behavior_list = {'RHeadScratch','LArmScratch','RArmScratch','Anogenitalgroom','RBodyGroom'};
 behavior_list = {'Sniffstill'};
@@ -112,7 +156,46 @@ close figure 200
     end
 end
  
+
+
+compare_string = 'FaceWipes';
+
 [fulloutput_caff,indivbouts_caff] = fillannotationgaps(outputstruct_caff.output.GlobalBehavior.(compare_string),   20);
+[~,annotated_subset_good] = intersect(framesubset_true,1:100000);
+[~,fullframescaff_good] = intersect(framesubset_true,fulloutput_caff);
+
+[candidate_frames,score] = findsimilarframes_mlfeatures(ML_features,fullframescaff_good,annotated_subset_good,1:10^6);
+
+%[~,candidateframes] = intersect(framesubset_true,1:2000000);
+candidateframes = find(candidate_frames == 1);
+candidateframes = candidateframes(candidateframes>80000);
+animate_markers_aligned_fullmovie(mocapstruct_caff,framesubset_true(candidateframes(1:10:end))')
+animate_markers_aligned_fullmovie(mocapstruct_caff,framesubset_true(fullframescaff_good(1:10:end))')
+
+
+%animate_markers_aligned_fullmovie(mocapstruct_caff,fulloutput_caff(1:10:end)')
+
+[~,subset_1] = intersect(framesubset_true,fulloutput_caff);
+[subset_2] = (candidateframes);
+
+figure(55)
+plot3(ML_features.pose_score(subset,1),ML_features.pose_score(subset,2),ML_features.pose_score(subset,3),'+b','MarkerSize',1)
+hold on
+plot3(ML_features.pose_score(subset_2,1),ML_features.pose_score(subset_2,2),ML_features.pose_score(subset_2,3),'+r','MarkerSize',1)
+plot3(ML_features.pose_score(subset_1,1),ML_features.pose_score(subset_1,2),ML_features.pose_score(subset_1,3),'+g','MarkerSize',1)
+hold off
+
+[~,tsnesubset] = intersect(subset,subset_1);
+[~,tsnesubset_rf] = intersect(subset,subset_2);
+
+figure(56)
+plot(mappedX(:,1),mappedX(:,2),'b+')
+hold on
+plot(mappedX(tsnesubset,1),mappedX(tsnesubset,2),'r+')
+plot(mappedX(tsnesubset_rf,1),mappedX(tsnesubset_rf,2),'g+')
+
+hold off
+
 
 [fulloutput_DLS2,indivbouts_dls] = fillannotationgaps(fulloutput_DLS_cat.(compare_string),20);
 [fulloutput_mc,indivbouts_mc] = fillannotationgaps(outputstruct_mcpost.output.GlobalBehavior.(compare_string),   20);
@@ -149,6 +232,7 @@ end
 % legend(legend_tags)
 % subplot(1,2,2)
 % legend(legend_tags)
+
 
 
 %compare_plot_marker_characteristics_timerange(mocapstruct_post_bi,fulloutput_mc,mocapstruct_caff,fulloutput_caff)

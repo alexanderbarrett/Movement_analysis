@@ -611,7 +611,7 @@ if exist(outputStructFullPath,'file')
         while true
             ansAppend = questdlg('The output struct exists and it is NOT empty. Do you want to append data to this file?','Motion Caputre Struct Data Operation','No');
             
-            if ~isempty(ansAppend) && ansAppend ~= "Cancel"
+            if ~isempty(ansAppend) && ansAppend ~= 'Cancel'
                 break
             end
         end

@@ -116,8 +116,9 @@ hold off
 
 lever_shifted(index_xcorr) = circshift(lever_shifted(index_xcorr),-lag_shift,2);
 num_xcorr = numel(index_xcorr);
+if (num_xcorr-lag_shift >0)
 lever_shifted(index_xcorr(num_xcorr-lag_shift:num_xcorr)) = 0;
-    
+end
     
     
 for mm = 1:numel(fn_analog)

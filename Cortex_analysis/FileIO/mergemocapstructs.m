@@ -48,6 +48,13 @@ mocap_struct_agg.resample_analog = cat(1,mocap_struct_agg.resample_analog,...
 
 mocap_struct_agg.lever_thresholded = cat(2,mocap_struct_agg.lever_thresholded,reshape(mocap_struct_indiv.lever_thresholded,1,[]));
 mocap_struct_agg.filestartpts = cat(2,mocap_struct_agg.filestartpts, mocap_struct_indiv.filestartpts);
+mocap_struct_agg.filenames = cat(2,mocap_struct_agg.filenames,mocap_struct_indiv.filenames);
+mocap_struct_agg.cameradirectory = cat(1,mocap_struct_agg.cameradirectory,mocap_struct_indiv.cameradirectory);
+if isfield(mocap_struct_indiv,'matched_frames_aligned')
+mocap_struct_agg.matched_frames_aligned = cat(1,mocap_struct_agg.matched_frames_aligned,mocap_struct_indiv.matched_frames_aligned);
+else
+    mocap_struct_agg.matched_frames_aligned = cat(1,mocap_struct_agg.matched_frames_aligned,{[],[],[]});
+end
 %mocap_struct_agg.markernames = marker_names;
 %mocap_struct_agg.fps = fps;
 %mocap_struct_agg.analog_fps = analog_fps;

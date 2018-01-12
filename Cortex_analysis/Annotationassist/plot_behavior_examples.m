@@ -60,7 +60,7 @@ bout_use = 2;
 for mm =marker_inds
 agg_features = cat(3,agg_features,mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mm})(allbouts{bout_use} ,:));
 end
-pictoral_animation_subset(permute(agg_features,[1 3 2]),mocapstruct,(1:10:numel(allbouts{bout_use})),125,marker_inds,h)
+pictoral_animation_subset(permute(agg_features,[1 3 2]),mocapstruct,(1:10:numel(allbouts{bout_use})),175,marker_inds,h)
 xlim([0 1500])
 
 

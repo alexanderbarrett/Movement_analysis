@@ -62,7 +62,7 @@ num_fr = numel(fr);
 %agg_spectrograms = cell2mat(pc_spectrograms'); %second dimension is time base
 
 %% normalize the spectrograms
-agg_spectrograms = log10(agg_spectrograms);
+agg_spectrograms = log(agg_spectrograms);
 agg_spectrograms(isinf(agg_spectrograms)) = -20;
 agg_spectrograms(isnan(agg_spectrograms)) = -20;
 dyad_out = agg_spectrograms;

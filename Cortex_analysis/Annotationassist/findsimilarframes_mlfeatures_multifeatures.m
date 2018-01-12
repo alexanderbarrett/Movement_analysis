@@ -1,12 +1,12 @@
-function [candidateframes,score] = findsimilarframes_mlfeatures(ML_features,framelist,framesubset_search,annotation_window)
+function [candidateframes,score,Mdl_test] = findsimilarframes_mlfeatures_multifeatures(ML_features,labels,framesubset_search,annotation_window)
 
 
 featureuse = cat(2,ML_features.pose_score(:,:),ML_features.trunk_vel(1,:)',ML_features.RGroom(:,1));
 featureuse_train =featureuse(framesubset_search,:);
-
-labels = zeros(1,numel(framesubset_search));
-[~,ind_true_subset] = intersect(framesubset_search,framelist);
-labels(ind_true_subset) = 1;
+% 
+% labels = zeros(1,numel(framesubset_search));
+% [~,ind_true_subset] = intersect(framesubset_search,framelist);
+% labels(ind_true_subset) = 1;
                             featurepredict = featureuse(annotation_window,:);
 
                             use_knn = 0;
@@ -18,7 +18,8 @@ labels(ind_true_subset) = 1;
 
                            Mdl_test.oobError();
     [testval,score,stddevs] = Mdl_test.predict(featurepredict);
- candidateframes = str2num(cell2mat(testval));
+ candidateframes = cellfun(@str2num,testval);
+ 
                             elseif (use_knn)
 CVKNNMdl2 = fitcknn(featureuse_train,labels,'Distance','Euclidean',...
     'NumNeighbors',10,'Standardize',1);

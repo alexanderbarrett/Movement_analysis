@@ -17,8 +17,9 @@ labels(ind_true_subset) = 1;
  %   Mdl_test = TreeBagger(100,featureuse_train,labels,'Method','regression','OOBPrediction','on');
 
                            Mdl_test.oobError();
-    [testval,score,stddevs] = Mdl_test.predict(featurepredict);
+    [testval,testscores,stddevs] = Mdl_test.predict(featurepredict);
  candidateframes = str2num(cell2mat(testval));
+ score = candidateframes;
                             elseif (use_knn)
 CVKNNMdl2 = fitcknn(featureuse_train,labels,'Distance','Euclidean',...
     'NumNeighbors',10,'Standardize',1);

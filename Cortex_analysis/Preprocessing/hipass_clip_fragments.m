@@ -38,7 +38,7 @@ for mk = looplist
 
         if (numel(pixellist.PixelIdxList{lk})>=1) % at least 200 ms consecutive good tracking to be used -- removed to facilitate other comparisons
         for sk = 1:3
-                
+                 if (numel(pixellist.PixelIdxList{lk})>=10)
         frame_fragment = filtfilt(f1_hipass,f2_hipass,marker_clipped.(markernames{mk})(pixellist.PixelIdxList{lk},sk)-...
                 mean(marker_clipped.(markernames{mk})(pixellist.PixelIdxList{lk},sk)));
           
@@ -54,7 +54,13 @@ for mk = looplist
             
             
                         marker_clipped.(markernames{mk})(pixellist.PixelIdxList{lk},sk) = frame_fragment;
-
+                 else 
+                     %don't hipass if not enough frames
+                      marker_clipped.(markernames{mk})(pixellist.PixelIdxList{lk},sk) = marker_clipped.(markernames{mk})(pixellist.PixelIdxList{lk},sk)-...
+                mean(marker_clipped.(markernames{mk})(pixellist.PixelIdxList{lk},sk));
+            
+            
+                 end
             
         end
         else

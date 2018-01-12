@@ -1,17 +1,8 @@
 function preprocessallmocap(ratname,mocapmasterdirectory)
 
 
+mocapfilestruct = loadmocapfilestruct(ratname,mocapmasterdirectory);
 
-switch ratname
-    case 'Vicon8'
-mocapfilestruct = loadmocapfilestruct('Vicon8',mocapmasterdirectory);
-    case 'JDM25'
-mocapfilestruct = loadmocapfilestruct('JDM25',mocapmasterdirectory);
- case 'Vicon3'
-mocapfilestruct = loadmocapfilestruct('Vicon3',mocapmasterdirectory);
-  case 'JDM32'
-mocapfilestruct = loadmocapfilestruct('JDM25',mocapmasterdirectory);
-end
 mocapvideodirectory = [];
 %% get the desired files
 descriptor_struct_1 = struct();
@@ -49,9 +40,14 @@ end
 
 
 
-overwrite=0;
+overwrite=1;
 overwrite_macro = 0;
-[mocapstruct] = preprocess_mocap_data(mocapfilearray,mocapfilestruct,descriptor_struct_1,mocapfiletimes,overwrite,overwrite_macro);
+descriptor_struct_1.Vidtag_savetag = descriptor_struct_1.vidtag;
+descriptor_struct_1.Condition = descriptor_struct_1.cond;
+descriptor_struct_1.Days = descriptor_struct_1.day;
+descriptor_struct_1.Nametag = descriptor_struct_1.vidtag;
+
+[mocapstruct] = preprocess_mocap_data_2(mocapfilearray,mocapfilestruct,descriptor_struct_1,mocapfiletimes,overwrite,overwrite_macro,[],[],0);
 end
 end
 end

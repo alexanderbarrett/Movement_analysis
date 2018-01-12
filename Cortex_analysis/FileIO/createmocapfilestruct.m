@@ -92,7 +92,7 @@ end
 
 
 
-
+%% --------------------- JDM32 -----------------------------------
 if strcmp(ratname,'JDM32')
 
 mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion',[]);
@@ -105,6 +105,80 @@ mocapfilestruct.UniLesion.days = {'20171031\Generated_C3D_files\','20171031_2\Ge
     '20171105\Generated_C3D_files\','20171106\Generated_C3D_files\','20171107\Generated_C3D_files\','20171108\Generated_C3D_files\'};
 mocapfilestruct.BiLesion.days = {'20171109\Generated_C3D_files\','20171110\Generated_C3D_files\','20171113\Generated_C3D_files\','20171113_2\Generated_C3D_files\',...
     '20171114\Generated_C3D_files\',  '20171115\Generated_C3D_files\',  '20171116\Generated_C3D_files\',  '20171117\Generated_C3D_files\',  '20171118\Generated_C3D_files\'};
+
+
+%% colos and links
+   [markercolor,links] = day_loading_header('vicon8_20marker');
+
+filestruct_conds = fieldnames(mocapfilestruct);
+for ll = 1:numel(filestruct_conds)
+    if isfield(mocapfilestruct.(filestruct_conds{ll}),'days')
+       days_here = mocapfilestruct.(filestruct_conds{ll}).days;
+   mocapfilestruct.(filestruct_conds{ll}).links = cell(1,numel(days_here));
+      mocapfilestruct.(filestruct_conds{ll}).markercolor = cell(1,numel(days_here));
+for jj = 1:numel(days_here)
+     mocapfilestruct.(filestruct_conds{ll}).links{jj} = links;
+      mocapfilestruct.(filestruct_conds{ll}).markercolor{jj} = markercolor;
+end
+end
+end
+end
+
+
+%% --------------------- JDM33 -----------------------------------
+if strcmp(ratname,'JDM33')
+
+mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion',[]);
+mocapfilestruct.mocapdir = strcat(mocapmasterdirectory,ratname,filesep);
+mocapfilestruct.PreLesion.days = {'20171122\Generated_C3D_files\','20171123\Generated_C3D_files\',...
+    '20171124\Generated_C3D_files\','20171125\Generated_C3D_files\','20171126\Generated_C3D_files\',...
+    '20171127\Generated_C3D_files\',...
+    '20171128\Generated_C3D_files\','20171129\Generated_C3D_files\','20171130\Generated_C3D_files\'};
+mocapfilestruct.UniLesion.days = {'20171201\Generated_C3D_files\','20171203\Generated_C3D_files\',...
+    '20171204\Generated_C3D_files\',...
+    '20171205\Generated_C3D_files\',...
+    '20171214\Generated_C3D_files\','20171215\Generated_C3D_files\','20171216\Generated_C3D_files\',...
+    '20171217\Generated_C3D_files\','20171218\Generated_C3D_files\'};
+mocapfilestruct.BiLesion.days = {'20180103\Generated_C3D_files\','20180104\Generated_C3D_files\',...
+    '20180105\Generated_C3D_files\',...
+    '20180107\Generated_C3D_files\',...
+    '20180108\Generated_C3D_files\','20180109\Generated_C3D_files\'};
+%mocapfilestruct.BiLesion.days = {'20171109\Generated_C3D_files\','20171110\Generated_C3D_files\','20171113\Generated_C3D_files\','20171113_2\Generated_C3D_files\',...
+%    '20171114\Generated_C3D_files\',  '20171115\Generated_C3D_files\',  '20171116\Generated_C3D_files\',  '20171117\Generated_C3D_files\',  '20171118\Generated_C3D_files\'};
+
+
+%% colos and links
+   [markercolor,links] = day_loading_header('vicon8_20marker');
+
+filestruct_conds = fieldnames(mocapfilestruct);
+for ll = 1:numel(filestruct_conds)
+    if isfield(mocapfilestruct.(filestruct_conds{ll}),'days')
+       days_here = mocapfilestruct.(filestruct_conds{ll}).days;
+   mocapfilestruct.(filestruct_conds{ll}).links = cell(1,numel(days_here));
+      mocapfilestruct.(filestruct_conds{ll}).markercolor = cell(1,numel(days_here));
+for jj = 1:numel(days_here)
+     mocapfilestruct.(filestruct_conds{ll}).links{jj} = links;
+      mocapfilestruct.(filestruct_conds{ll}).markercolor{jj} = markercolor;
+end
+end
+end
+end
+
+%% --------------------- JDM33 -----------------------------------
+if strcmp(ratname,'JDM27')
+
+mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion',[]);
+mocapfilestruct.mocapdir = strcat(mocapmasterdirectory,ratname,filesep);
+mocapfilestruct.PreLesion.days = {'20171206\Generated_C3D_files\','20171207\Generated_C3D_files\',...
+    '20171208\Generated_C3D_files\','20171219\Generated_C3D_files\','20171220\Generated_C3D_files\',...
+    '20171221\Generated_C3D_files\'};
+% mocapfilestruct.UniLesion.days = {'20171201\Generated_C3D_files\','20171203\Generated_C3D_files\',...
+%     '20171204\Generated_C3D_files\',...
+%     '20171205\Generated_C3D_files\',...
+%     '20171214\Generated_C3D_files\','20171215\Generated_C3D_files\','20171216\Generated_C3D_files\',...
+%     '20171217\Generated_C3D_files\','20171218\Generated_C3D_files\'};
+%mocapfilestruct.BiLesion.days = {'20171109\Generated_C3D_files\','20171110\Generated_C3D_files\','20171113\Generated_C3D_files\','20171113_2\Generated_C3D_files\',...
+%    '20171114\Generated_C3D_files\',  '20171115\Generated_C3D_files\',  '20171116\Generated_C3D_files\',  '20171117\Generated_C3D_files\',  '20171118\Generated_C3D_files\'};
 
 
 %% colos and links

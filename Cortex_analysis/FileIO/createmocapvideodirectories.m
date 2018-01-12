@@ -1,9 +1,9 @@
 function createmocapvideodirectories(ratname)
 
-
+mocapmasterdirectory = 'Y:\Jesse\Data\Motionanalysis_captures\';
 if strcmp(ratname,'Vicon8')
 mocapfilestruct = struct('PreLesion',[],'UniLesion',[]);
-mocapfilestruct.mocapdir = '\\140.247.178.37\Motionanalysis_captures\Vicon8\';
+mocapfilestruct.mocapdir = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon8\';
 mocapfilestruct.PreLesion.days = {'20170816\','20170817\','20170818\',...
     '20170820\',...
     '20170821\','20170822\','20170823\',... day7
@@ -37,10 +37,63 @@ mocapfilestruct.BiLesion.days = {'20171110\','20171113\','20171113_2\','20171114
 end
 
 
+if strcmp(ratname,'JDM33')
+
+mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion',[]);
+mocapfilestruct.mocapdir = strcat(mocapmasterdirectory,ratname,filesep);
+mocapfilestruct.PreLesion.days = {'20171122\','20171123\',...
+    '20171124\','20171125\','20171126\',...
+    '20171127\',...
+    '20171128\','20171129\','20171130\'};
+mocapfilestruct.UniLesion.days = {'20171201\','20171203\',...
+    '20171204\',...
+    '20171205\',...
+    '20171214\','20171215\','20171216\',...
+    '20171217\','20171218\'};
+mocapfilestruct.BiLesion.days = {'20180103\','20180104\',...
+    '20180105\',...
+    '20180107\',...
+    '20180108\','20180109\'};
+end
+
+
+
+if strcmp(ratname,'JDM27')
+
+mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion',[]);
+mocapfilestruct.mocapdir = strcat(mocapmasterdirectory,ratname,filesep);
+mocapfilestruct.PreLesion.days = {'20171206\','20171207\',...
+    '20171208\','20171219\','20171220\',...
+    '20171221\'};
+end
+
+
+% if strcmp(ratname,'JDM27')
+% mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion',[]);
+% mocapfilestruct.mocapdir = 'Y:\Jesse\Data\Motionanalysis_captures\JDM32\';
+% mocapfilestruct.PreLesion.days = {'20171020\','20171022\','20171023\',...
+%     '20171024\','20171025\','20171026\','20171027\','20171027_2\','20171028\','20171029\','20171030\'};
+% mocapfilestruct.UniLesion.days = {'20171031\','20171031_2\','20171101\','20171101_2\','20171102\','20171103\',...
+%     '20171103_2\','20171104\','20171105\','20171106\','20171107\'};
+% mocapfilestruct.BiLesion.days = {'20171110\','20171113\','20171113_2\','20171114\','20171115\','20171116\','20171117\','20171118\'};
+% 
+% end
+% 
+% 
+% if strcmp(ratname,'JDM33')
+% mocapfilestruct = struct('PreLesion',[],'UniLesion',[],'BiLesion',[]);
+% mocapfilestruct.mocapdir = 'Y:\Jesse\Data\Motionanalysis_captures\JDM32\';
+% mocapfilestruct.PreLesion.days = {'20171020\','20171022\','20171023\',...
+%     '20171024\','20171025\','20171026\','20171027\','20171027_2\','20171028\','20171029\','20171030\'};
+% mocapfilestruct.UniLesion.days = {'20171031\','20171031_2\','20171101\','20171101_2\','20171102\','20171103\',...
+%     '20171103_2\','20171104\','20171105\','20171106\','20171107\'};
+% mocapfilestruct.BiLesion.days = {'20171110\','20171113\','20171113_2\','20171114\','20171115\','20171116\','20171117\','20171118\'};
+% 
+% end
+
+
 if strcmp(ratname,'Vicon3')
-    
-  
-    mocapdir = ' \\140.247.178.37\Motionanalysis_captures\Vicon3\';
+mocapdir = ' \\140.247.178.37\Motionanalysis_captures\Vicon3\';
 
 mocapfilestruct = struct('early',[],'OneHand',[],'eighteenmarker',[],'eighteenmarkernoheadcap',[],'seventeen',[]);
 mocapfilestruct.mocapdir = 'E:\Bence\Data\Motionanalysis_captures\Vicon3\';
@@ -138,6 +191,12 @@ end
       fprintf('Making output directory for day %f condition %f \n',jj,ll)
   mkdir(outputfolder{1});
   copyfile(videosourcehere{1},outputfolder{1})
+    fprintf('converting video files \n')
+
+  read_mkv_file(outputfolder{1},outputfolder{1});
+  else
+  fprintf('converting video files %s \n',outputfolder{1})
+    read_mkv_file(outputfolder{1},outputfolder{1});
   end
               end
 

@@ -51,6 +51,9 @@ mocap_struct_agg.filestartpts = cat(2,mocap_struct_agg.filestartpts, mocap_struc
 mocap_struct_agg.filenames = cat(2,mocap_struct_agg.filenames,mocap_struct_indiv.filenames);
 mocap_struct_agg.cameradirectory = cat(1,mocap_struct_agg.cameradirectory,mocap_struct_indiv.cameradirectory);
 if isfield(mocap_struct_indiv,'matched_frames_aligned')
+    if numel(mocap_struct_agg.matched_frames_aligned) == 1
+        mocap_struct_agg.matched_frames_aligned = mocap_struct_agg.matched_frames_aligned{1};
+    end
 mocap_struct_agg.matched_frames_aligned = cat(1,mocap_struct_agg.matched_frames_aligned,mocap_struct_indiv.matched_frames_aligned);
 else
     mocap_struct_agg.matched_frames_aligned = cat(1,mocap_struct_agg.matched_frames_aligned,{[],[],[]});

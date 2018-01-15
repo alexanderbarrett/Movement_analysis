@@ -28,7 +28,7 @@ ov_meta = 0;
 
 descriptor_struct = get_mocap_files_table(6,'Vicon8');
  [~,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] = get_mocap_files_shortened(descriptor_struct,mocapmasterdirectory);
- [mocapstruct_v8pl2] = preprocess_mocap_data_2(mocapfilearray(5),mocapfilestruct,descriptor_struct,mocapfiletimes,1,0,[],mocapvideodirectory,0);
+ [mocapstruct_cafftest] = preprocess_mocap_data_2(mocapfilearray(5),mocapfilestruct,descriptor_struct,mocapfiletimes,1,0,[],mocapvideodirectory,0);
  base = 300000;
 M= animate_markers_aligned_fullmovie_syncedvideo(mocapstruct_v8pl2, base+(1:10:10000),...
     mocapstruct_v8pl2.cameradirectory{2},mocapstruct_v8pl2.matched_frames_aligned{2}( base+(1:10:10000)));

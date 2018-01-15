@@ -14,6 +14,21 @@ loadmocapfilestruct('Vicon8',mocapmasterdirectory) %this step can take an hour, 
 
 mocapfilestruct = loadmocapfilestruct('JDM25',mocapmasterdirectory);
 
+[mocapstructs_25,MLfeat_25] = load_mocap_cellarray('JDM25',[1,5,6],mocapmasterdirectory);
+
+subset = 1:100:25000*100;
+ plot_feature_spaces(MLfeat_25{1},subset,'b')
+  plot_feature_spaces(MLfeat_25{2},subset,'g')
+plot_feature_spaces(MLfeat_25{3},subset,'r')
+
+[mocapstructs_25_2,MLfeat_25_2] = load_mocap_cellarray('JDM25',[10],mocapmasterdirectory);
+
+
+[mocapstructs_32,MLfeat_32] = load_mocap_cellarray('JDM32',[1,5,6,9],mocapmasterdirectory);
+%[mocapstructs_25_2,MLfeat_25_2] = load_mocap_cellarray('JDM25',[10],mocapmasterdirectory);
+
+
+
 %alternate: Vicon8_caff, Vicon8_dlslesion
 [descriptor_struct_1,mocapfilearray1,mocapfilestruct1,mocapvideodirectory,mocapfiletimes1] =  get_mocap_files('Vicon8','Vicon8_caff',mocapmasterdirectory);
 [mocapstruct_caff] = preprocess_mocap_data( mocapfilearray1,mocapfilestruct1,descriptor_struct_1,mocapfiletimes1,0,0);
@@ -31,6 +46,11 @@ descriptor_struct = get_mocap_files_table(9,'Vicon8');
  %[mocapstruct_lesion] = preprocess_mocap_data2( mocapfilearray1,mocapfilestruct1,descriptor_struct_1,mocapfiletimes1,0,1,[],mocapvideodirectory,0);
 ML_features_lesion = get_supervised_features(mocapstruct_lesion,mocapstruct_lesion.modular_cluster_properties.clustering_inds_agg{2},2);
 
+descriptor_struct = get_mocap_files_table(12,'Vicon8');
+ [~,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] = get_mocap_files_shortened(descriptor_struct,mocapmasterdirectory);
+ [mocapstruct_social] = preprocess_mocap_data_2(mocapfilearray,mocapfilestruct,descriptor_struct,mocapfiletimes,0,0,[],mocapvideodirectory,0);
+ %[mocapstruct_lesion] = preprocess_mocap_data2( mocapfilearray1,mocapfilestruct1,descriptor_struct_1,mocapfiletimes1,0,1,[],mocapvideodirectory,0);
+ML_features_social = get_supervised_features(mocapstruct_social,mocapstruct_social.modular_cluster_properties.clustering_inds_agg{2},2);
 
 
 [descriptor_struct_1,mocapfilearray1,mocapfilestruct1,mocapvideodirectory,mocapfiletimes1] =  get_mocap_files('Vicon8','Vicon8_prelesion',mocapmasterdirectory);
@@ -43,13 +63,15 @@ ML_features_prel = get_supervised_features(mocapstruct_prelesion,mocapstruct_pre
 [mocapstruct_caff2] = preprocess_mocap_data( mocapfilearray1,mocapfilestruct1,descriptor_struct_1,mocapfiletimes1,0,0);
 ML_features_caff2 = get_supervised_features(mocapstruct_caff2,mocapstruct_caff2.modular_cluster_properties.clustering_inds_agg{2},2);
 
-subset = 1:100:100*20000;
+subset =  1:100:100*10000;
 
  plot_feature_spaces(ML_features,subset,'b')
   plot_feature_spaces(ML_features_prel,subset,'g')
 plot_feature_spaces(ML_features_amph,subset,'r')
-  plot_feature_spaces(ML_features_lesion,subset,'r')
+  plot_feature_spaces(ML_features_lesion,subset,'c')
+    plot_feature_spaces(ML_features_social,subset,'c')
 
+  
   plot_feature_spaces(ML_features_caff2,subset,'r')
 
 figure(55)
@@ -102,19 +124,24 @@ mocapstruct_post_bi = mocapstruct_post_bi.mocap_struct;
 % plot3(ML_features.spectrogram_pcs_trunk(dynamics_inds,1),ML_features.spectrogram_pcs_trunk(dynamics_inds,2),...
 %     ML_features.spectrogram_pcs_trunk(dynamics_inds,3),'+','MarkerSize',1)
 % 
-% figure(588)
-% dynamics_inds = 1:100:100*23000;
-% plot3(ML_features.spectrogram_pcs_head(dynamics_inds,1),ML_features.spectrogram_pcs_head(dynamics_inds,2),...
-%     ML_features.spectrogram_pcs_head(dynamics_inds,3),'+','MarkerSize',1)
-% 
-% 
+figure(588)
+dynamics_inds = 1:100:100*23000;
+plot3(ML_features_prel.spectrogram_pcs_head_angle(dynamics_inds,1),ML_features_prel.spectrogram_pcs_head_angle(dynamics_inds,2),...
+    ML_features_prel.spectrogram_pcs_head_angle(dynamics_inds,3),'+g','MarkerSize',1)
+
+figure(604)
+imagesc(ML_features.spectrogram_coeffs_head)
+figure(605)
+imagesc(ML_features.spectrogram_coeffs_trunk_angle)
+
+psd_resynthesis(ML_features.mean_ja_spect{1}(1,:),1:50,'b')
 
 subset = 1:100:100*5000;%size(ML_features.pose_score,1);
 mappedX = tsne(cat(2,ML_features.pose_score(subset,1:6),ML_features.appearance_features_agg_score_whitened(subset,1:6)));
 
 
 mappedX_dyn_angle =  tsne(cat(2,ML_features.spectrogram_pcs_head(subset,1:15),ML_features.spectrogram_pcs_trunk(subset,1:15)));
-mappedX_dyn_head=  tsne(cat(2,ML_features.spectrogram_pcs_head_angle(subset,1:15)));
+mappedX_dyn_head=  tsne(cat(2,ML_features.spectrogram_pcs_head_angle(subset,1:15),ML_features.spectrogram_pcs_head(subset,1:15)));
 
 
 mappedX_dyn =  tsne(cat(2,ML_features.spectrogram_pcs_head(subset,1:5),ML_features.spectrogram_pcs_trunk(subset,1:5),...
@@ -126,6 +153,10 @@ mappedX_joint =  tsne(cat(2,ML_features.pose_score(subset,1:10),ML_features.appe
 
 figure(665)
 plot(mappedX(:,1),mappedX(:,2),'+')
+
+
+figure(665)
+plot(mappedX_dyn_head(:,1),mappedX_dyn_head(:,2),'+')
 
 
 figure(666)
@@ -291,10 +322,16 @@ hold on
 % plot(mappedX(framesubset_tsne,1),mappedX(framesubset_tsne,2),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
 % hold on
 
+% 
+% figure(570)
+% plot(mappedX_joint(framesubset_tsne,1),mappedX_joint(framesubset_tsne,2),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
+% hold on
 
-figure(570)
-plot(mappedX_joint(framesubset_tsne,1),mappedX_joint(framesubset_tsne,2),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
+
+figure(573)
+plot(mappedX_dyn_head(framesubset_tsne,1),mappedX_dyn_head(framesubset_tsne,2),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
 hold on
+
 
 % 
 % 
@@ -324,6 +361,9 @@ legend(legendnames)
 legend(legendnames)
   figure(572)
 legend(legendnames)
+ figure(573)
+legend(legendnames)
+
 
 make_ethogram(outputvector,fieldnames_beh)
  %   make_dotplot(outputvector,fieldnames_beh,ML_features)

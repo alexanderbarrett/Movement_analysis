@@ -50,8 +50,9 @@ if nargin==7
 else
 macro_save_name = strcat(preproc_save_directory,descriptor_struct.Vidtag_savetag,'.mat');
 end
-
+   fprintf('macros save name %s \n',macro_save_name)
 if (exist(macro_save_name,'file') && ~overwrite_macro_flag)
+    fprintf('loading from file  \n')
 mocap_struct = load(macro_save_name);
 if (~isfield(mocap_struct,'markernames'))
 mocap_struct = mocap_struct.mocap_struct;
@@ -84,8 +85,9 @@ str
 c = textscan(str,'%s');
 createdate = c{1}{15};
 monthval= str2num(createdate(1:2));
+dayval= str2num(createdate(4:5));
 
-if (monthval>1)
+if (monthval>1 && dayval > 12)
 overwrite_flag = 1;
 fprintf('Overwriting ... \n')
 end
@@ -268,7 +270,7 @@ end
 
 [dir_base_file,fname_here] = fileparts(filepath_array_sorted{mm});
 %find which condition the file is from
-day_here = 0;
+day_here = nan;
 condhere = [];
 
 days_to_search = descriptor_struct.Days;
@@ -291,6 +293,7 @@ mocapfile_exact = cellfun(@numel,(strfind(mocapfilestruct.(descriptor_struct.Con
 end
 end
 
+if ~isnan(day_here)
   %% do the video part here
 %videofiles
 dir_base = ((strrep(dir_base_file,'Generated_C3D_files','')));
@@ -344,6 +347,7 @@ mocapfile_exact = cellfun(@numel,(strfind(mocapfilestruct.(descriptor_struct.Con
 %then the cam directory
 mocap_struct.cameradirectory = cell(1,numel(camfolder_list));
 if numel(camfolder_list) == 0
+    fprintf('no camera folder found \n')
        mocap_struct.matched_frames_aligned{mm} = {[],[],[]}; 
 end
 
@@ -357,6 +361,8 @@ mocap_struct.cameradirectory{mm} =  camfolder;
 times_files = dir(strcat(camfolder,filesep,'*.times'));
 
 f = fopen(strcat(camfolder,filesep,times_files.name));
+fprintf('loaded times file %f \n',f);
+
 if (f)
 float1 = fread(f,[1,100000000],'uint64');
 frame_number = numel(float1);
@@ -392,24 +398,57 @@ else
 end
         else
             fprintf('no camera folders found \n')
-             mocap_struct.matched_frames_aligned{1} = {[],[],[]};
+             mocap_struct.matched_frames_aligned{mm} = [];
 end
-
-       fprintf('no times file found \n')
-             mocap_struct.matched_frames_aligned = {[],[],[]};
+else
+     mocap_struct.matched_frames_aligned{mm} = [];
 end
 %% load in all the video files and save to the structure
 %mocap_struct.video_files = 
     end
+else
+    fprintf('no camera folders found \n')
+             mocap_struct.matched_frames_aligned = {[],[],[]};
+                          mocap_struct.cameradirectory = {[],[],[]};
 
+end
 
+        fprintf(' adding outputs \n')
+       [~,markers_preproc_aligned,mean_position,rotation_matrix] = align_hands_elbows(mocap_struct.markers_preproc,fps);
+mocap_struct.markercolor = mocapfilestruct.(descriptor_struct.Condition).markercolor{1}; 
+     mocap_struct.links = mocapfilestruct.(descriptor_struct.Condition).links{1};
+mocap_struct.markernames = fieldnames(mocap_struct.markers_preproc ); 
+  mocap_struct.markers_aligned_preproc = markers_preproc_aligned;
+  mocap_struct.fps = fps;
+mocap_struct.analog_fps = analog_fps;
+    mocap_struct.mocapfiletimes = mocapfiletimes;
 
 
 %% save this struct
 save(save_filename,'mocap_struct','-v7.3')
+    else
+       load(save_filename)
+       if ~isfield(mocap_struct,'markers_aligned_preproc')
+           fprintf(' adding outputs \n')
+       [~,markers_preproc_aligned,mean_position,rotation_matrix] = align_hands_elbows(mocap_struct.markers_preproc,fps);
+mocap_struct.markercolor = mocapfilestruct.(descriptor_struct.Condition).markercolor{1}; 
+     mocap_struct.links = mocapfilestruct.(descriptor_struct.Condition).links{1};
+mocap_struct.markernames = fieldnames(mocap_struct.markers_preproc ); 
+  mocap_struct.markers_aligned_preproc = markers_preproc_aligned;
+  mocap_struct.fps = fps;
+mocap_struct.analog_fps = analog_fps;
+mocap_struct.mocapfiletimes = mocapfiletimes;
+
+       save(save_filename,'mocap_struct')
+       end
     end
 end
 mocap_struct_agg = load_preprocessed_data(filepath_array_sorted);
+
+%% add fields left out by a previous configuration
+
+
+
 
 %% now load from disk and merge
 

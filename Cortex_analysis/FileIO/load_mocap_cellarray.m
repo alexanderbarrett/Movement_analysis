@@ -1,5 +1,5 @@
 function [mocapcellout,MLfeaturescellout] = load_mocap_cellarray(ratname,numbers,mocapmasterdirectory)
-mocapcellout = cell(1,numel(numbers))
+mocapcellout = cell(1,numel(numbers));
 MLfeaturescellout = cell(1,numel(numbers));
 
 for ll = numbers

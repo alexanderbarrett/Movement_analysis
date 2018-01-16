@@ -40,6 +40,8 @@ end
 % end
 
 
+
+
 %% get file directories for data that is saved or not
 %% filename for the macrosave
  [save_dir,~,~] = fileparts(filepath_array_sorted{1});
@@ -50,6 +52,23 @@ if nargin==7
 else
 macro_save_name = strcat(preproc_save_directory,descriptor_struct.Vidtag_savetag,'.mat');
 end
+
+
+ %% only save if a new file
+    if (exist(macro_save_name,'file'))
+[dum,str] = dos(char(strcat('dir',{'   '},macro_save_name)));
+dum
+c = textscan(str,'%s');
+createdate = c{1}{15};
+monthval= str2num(createdate(1:2));
+
+if (monthval>1)
+save_preproc_flag = 1;
+overwrite_macro_flag =1;
+fprintf('Overwriting Macro File... \n')
+end
+end
+
    fprintf('macros save name %s \n',macro_save_name)
 if (exist(macro_save_name,'file') && ~overwrite_macro_flag)
     fprintf('loading from file  \n')
@@ -87,11 +106,12 @@ createdate = c{1}{15};
 monthval= str2num(createdate(1:2));
 dayval= str2num(createdate(4:5));
 
-if (monthval>1 && dayval > 12)
+if (monthval>1 && dayval > 13)
 overwrite_flag = 1;
 fprintf('Overwriting ... \n')
 end
 end
+
     if (~exist(save_filename,'file') || overwrite_flag)
 
 [markers,analog,resample_analog,lever_thresholded,filestartpts] = concatenate_andsample_c3d(filepath_array_sorted(mm),fps,analog_fps,...
@@ -447,8 +467,10 @@ mocap_struct_agg = load_preprocessed_data(filepath_array_sorted);
 
 %% add fields left out by a previous configuration
 
-
-
+for ll = 1:size(mocap_struct_agg.cameradirectory,2)
+    fprintf('converting mkv files')
+    read_mkv_file(mocap_struct.cameradirectory{1,ll},mocap_struct.cameradirectory{1,ll});
+end
 
 %% now load from disk and merge
 
@@ -596,19 +618,7 @@ if  nargin ==7
  
 end
 if (nargin < 9 || save_preproc_flag)
-    %% only save if a new file
-    if (exist(macro_save_name,'file'))
-[dum,str] = dos(char(strcat('dir',{'   '},macro_save_name)));
-dum
-c = textscan(str,'%s');
-createdate = c{1}{15};
-monthval= str2num(createdate(1:2));
-
-if (monthval>1)
-save_preproc_flag = 1;
-fprintf('Overwriting Macro File... \n')
-end
-end
+   
     
     
     

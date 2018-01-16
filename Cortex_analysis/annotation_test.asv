@@ -10,22 +10,20 @@ mkdir(savedirectory);
 
 %% load or create struct
 %createmocapfilestruct('Vicon8',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
-aa=loadmocapfilestruct('JDM25',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
+loadmocapfilestruct('Vicon8',mocapmasterdirectory) %this step can take an hour, potentially longer on the server
 
 mocapfilestruct = loadmocapfilestruct('JDM25',mocapmasterdirectory);
 
-[mocapstructs_25_2,MLfeat_25_2] = load_mocap_cellarray('JDM25',[13],mocapmasterdirectory);
-MLfeat_25_2{1} = get_supervised_features(mocapstructs_25_2{1},mocapstructs_25_2{1}.modular_cluster_properties.clustering_inds_agg{2},2);
-
-for kk = [3]
+[mocapstructs_25,MLfeat_25] = load_mocap_cellarray('JDM25',[1,5,6,10],mocapmasterdirectory);
+for kk = [1,4]
 MLfeat_25{kk} = get_supervised_features(mocapstructs_25{kk},mocapstructs_25{kk}.modular_cluster_properties.clustering_inds_agg{2},2);
 end
 
 subset = 1:100:25000*100;
  plot_feature_spaces(MLfeat_25{1},subset,'b')
-plot_feature_spaces(MLfeat_25{3},subset,'c')
-plot_feature_spaces(MLfeat_25{2},subset,'r')
-plot_feature_spaces(MLfeat_25{4},subset,'g')
+  plot_feature_spaces(MLfeat_25{2},subset,'g')
+plot_feature_spaces(MLfeat_25{3},subset,'r')
+plot_feature_spaces(MLfeat_25{4},subset,'r')
 
 %[mocapstructs_25_2,MLfeat_25_2] = load_mocap_cellarray('JDM25',[1,5,6,10],mocapmasterdirectory);
 ll_list = [1,2,4];
@@ -34,8 +32,8 @@ for ll = ll_list
 plot_score_histogram(MLfeat_25{ll}.spectrogram_pcs_head_angle,color_list{find(ll_list == ll)},2);
 plot_score_histogram(MLfeat_25{ll}.spectrogram_pcs_trunk_angle,color_list{find(ll_list == ll)},1);
 %plot_score_histogram(MLfeat_25{ll}.rel_velocity_head_abs_300,color_list{find(ll_list == ll)});
-end
 
+end
 [mocapstructs_32,MLfeat_32] = load_mocap_cellarray('JDM32',[1,5,6,9],mocapmasterdirectory);
 %[mocapstructs_25_2,MLfeat_25_2] = load_mocap_cellarray('JDM25',[10],mocapmasterdirectory);
 

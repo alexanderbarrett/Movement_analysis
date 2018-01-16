@@ -1,7 +1,10 @@
-function preprocessimportantmocap(ratname)
+function preprocessimportantmocap(ratname,indexes)
+%1,5,6,10 for jdm 25
+%1,5,6,9 for vicon8
+%1,5,6,9 for jdm32
 
 mocapmasterdirectory = 'Y:\Jesse\Data\Motionanalysis_captures\';
-for mm = 11:15
+for mm = indexes
     fprintf('starting preprocessing for index %f \n',mm)
 descriptor_struct = get_mocap_files_table(mm,ratname);
 if numel(descriptor_struct)

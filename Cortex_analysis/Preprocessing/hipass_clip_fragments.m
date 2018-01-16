@@ -21,7 +21,7 @@ looplist = 1:numel(markernames);
 end
 %cluster_size_dist = cell(1,number_of_clust(mmm));
 
-inst_label = zeros(1,numel(markers.(markernames{1})(:,3)));
+inst_label = zeros(1,numel(markers.(markernames{1})(:,1)));
 inst_label(fragment_frames) = 1;
 clipped_index = 1:numel(inst_label);
 pixellist = bwconncomp(inst_label);
@@ -37,7 +37,7 @@ for mk = looplist
         %params.min_frames;
 
         if (numel(pixellist.PixelIdxList{lk})>=1) % at least 200 ms consecutive good tracking to be used -- removed to facilitate other comparisons
-        for sk = 1:3
+        for sk = 1:size(marker_clipped.(markernames{mk}),2)
                  if (numel(pixellist.PixelIdxList{lk})>=10)
         frame_fragment = filtfilt(f1_hipass,f2_hipass,marker_clipped.(markernames{mk})(pixellist.PixelIdxList{lk},sk)-...
                 mean(marker_clipped.(markernames{mk})(pixellist.PixelIdxList{lk},sk)));

@@ -33,11 +33,28 @@ plot3(ML_features.spectrogram_pcs_trunk_angle(subset,1),ML_features.spectrogram_
 title('trunk angle dynamics')
 
 
+figure(56)
+%dynamics_inds = 1:100:100*23000;
+hold on
+plot3(ML_features.spectrogram_pcs_trunk(subset,1),ML_features.spectrogram_pcs_trunk(subset,2),...
+    ML_features.spectrogram_pcs_trunk(subset,3),'+','MarkerSize',1,'Color',color_here)
+title('trunk dynamics')
+
+
 figure(588)
 hold on
 %dynamics_inds = 1:100:100*23000;
 plot3(ML_features.spectrogram_pcs_head_angle(subset,1),ML_features.spectrogram_pcs_head_angle(subset,2),...
     ML_features.spectrogram_pcs_head_angle(subset,3),'+','MarkerSize',1,'Color',color_here)
 title('head angle dynamics')
+
+
+figure(589)
+hold on
+%dynamics_inds = 1:100:100*23000;
+plot3(ML_features.spectrogram_pcs_head(subset,1),ML_features.spectrogram_pcs_head(subset,2),...
+    ML_features.spectrogram_pcs_head(subset,3),'+','MarkerSize',1,'Color',color_here)
+title('head angle dynamics')
+
 
 end

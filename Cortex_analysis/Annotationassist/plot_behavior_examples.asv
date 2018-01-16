@@ -31,7 +31,7 @@ figure(78)
 colorlist = jet(numel(markerstoplot));
  indshere2 = [];
  breakpoints = [];
-for ll = [bouttoplot]
+for ll = [1,bouttoplot,2,4]
     indshere2 =   cat(2,indshere2,arrayfun(@(x) find(fulloutput == allbouts{ll}(x)),1:numel(allbouts{ll})));
     breakpoints = cat(2,breakpoints,numel(indshere2));
 end
@@ -74,7 +74,7 @@ box off
 h = figure(370)
 marker_inds = 1:20;
 agg_features = [];
-bout_use = 1;
+bout_use = 2;
 for mm =marker_inds
 agg_features = cat(3,agg_features,mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mm})(allbouts{bout_use} ,:));
 end

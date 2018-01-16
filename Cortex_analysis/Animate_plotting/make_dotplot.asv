@@ -1,8 +1,7 @@
 function make_dotplot(annotation_vec,fieldnames_beh,ML_features)
 feature_list = {'LGroom','high_rear','rel_velocity_head_abs_100','rel_velocity_head_abs_33',...
     'absolute_velocity_trunk_abs_100','rel_velocity_hipL_abs_100','rel_velocity_hipR_abs_100','rel_velocity_trunk_abs_100'};
-feature_names = {'LGroom','high rear','Head Vel','Head Velocity (faster)',...
-    'Trunk Velocity','L Hip Velocity','R Hip Velocity','Rel. Trunk Velocity'};
+
 
 % get the max val and std of the chosen features for z scoring
 feature_means = zeros(1,numel(feature_list)); 
@@ -80,25 +79,25 @@ end
     end
 
 xlim([0 9])
-set(gca,'XTick',[1:numel(feature_list)],'XTickLabels',feature_names,'YTick',[1:num_beh],'YTickLabels',axisnames)
+set(gca,'XTick',[1:numel(feature_list)],'XTickLabels',str(feature_list),'YTick',[1:num_beh],'YTickLabels',axisnames)
 colormap(jet)
 colorbar;
 
-% %declare colormaps
-% num_beh = numel(fieldnames_beh);
-% ethocolors = hsv(num_beh);
-% %get behavior to number mapping
-%    frames_beh = find(annotation_vec == mm); 
-%       if numel(frames_beh)
-%    figure(67)
-%   h= bar( frames_beh,ones(1,numel( frames_beh)),1)
-%   set(h,'FaceColor',ethocolors(mm+1,:),'EdgeColor','none')
-%    hold on
-%    legendnames{1,size(legendnames,2)+1} = fieldnames_beh{mm+1};
-%    end  
-% 
-% legend(legendnames)
-% 
+%declare colormaps
+num_beh = numel(fieldnames_beh);
+ethocolors = hsv(num_beh);
+%get behavior to number mapping
+   frames_beh = find(annotation_vec == mm); 
+      if numel(frames_beh)
+   figure(67)
+  h= bar( frames_beh,ones(1,numel( frames_beh)),1)
+  set(h,'FaceColor',ethocolors(mm+1,:),'EdgeColor','none')
+   hold on
+   legendnames{1,size(legendnames,2)+1} = fieldnames_beh{mm+1};
+   end  
+
+legend(legendnames)
+
 
 %pose ethogram
 

@@ -8,7 +8,6 @@ conditionname = 'Vicon8_caff';
 conditionnumber = 6;
 
 % for the specific file
-chosenbehavior = 'WetDogShake';
 subset_of_frames_to_annotate = 1:2*10^6;
 gapfill_number = 20;
 
@@ -16,8 +15,36 @@ gapfill_number = 20;
 annotation_mocapname = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon8\20170822\Preprocessed\nolj_Recording_day7_caffeine1_nolj.mat';
 annotation_filename = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon8\20170822\Preprocessed\nolj_Recording_day7_caffeine1_nolj_handannotation_JDM.mat';
 annotation_filenumber = 1;
+
+annotation_folder = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon8\20170822\Preprocessed\';
+annotation_filenames = {'nolj_Recording_day7_caffeine1_nolj_handannotation_AB_1to48000.mat',...
+    'nolj_Recording_day7_caffeine2_nolj_handannotation_AB_1to23800.mat',...
+    'nolj_Recording_day7_caffeine2_nolj_handannotation_AB_23800to53323.mat',...
+    'nolj_Recording_day7_caffeine2_nolj_handannotation_AB_53323to64603.mat'};
+annotation_filenumber = {1,2,2,2};
+
+annot_cell = cell(1,numel(annotation_filenames));
+subset_of_frames_annotated = [];
+agg_struct = struct([]);
+for jj = 1:4
+output1 = load(strcat(annotation_folder,annotation_filenames{jj}));
+for kk = fieldnames(output1.output.GlobalBehavior)'
+    output1.output.GlobalBehavior.(kk{1}) = output1.output.GlobalBehavior.(kk{1})+(annotation_filenumber{jj}-1)*540000;
+end
+annot_cell{jj} = output1;
+
+  C = struct2cell(output1.output.GlobalBehavior);
+minval = min([C{:}]);
+maxval = max([C{:}]);
+
+subset_of_frames_annotated = cat(2,subset_of_frames_annotated ,(annotation_filenumber{jj}-1)*540000+minval:maxval); %depends on the file(s) loaded
+agg_struct = mergeStructs_JDM(agg_struct,output1.output.GlobalBehavior);
+
+end
+subset_of_frames_annotated = unique(subset_of_frames_annotated);
+
+
 outputstruct_annotation = load(annotation_filename);
-subset_of_frames_annotated = (annotation_filenumber-1)*540000+1:100000; %depends on the file(s) loaded
 
 
 %% get files and the machine learning features
@@ -35,7 +62,7 @@ frames_with_goodtracking = intersect(mocapstruct_all.modular_cluster_properties.
 %% LOAD IN THE ANNOTATION
 % fill the gaps in the structure
 % in the future can write code to accomodate multiple annotation_files 
-[fulloutput_annotation_struct,indivbouts_caff_struct] = fillannotationgaps_struct(outputstruct_annotation.output.GlobalBehavior,gapfill_number);
+[fulloutput_annotation_struct,indivbouts_annotation_struct] = fillannotationgaps_struct(agg_struct ,gapfill_number);
 
 %visualize a chosen behavior (optional)
 %animate_markers_aligned_fullmovie(mocapstruct_caff,fulloutput_caff_struct.(chosenbehavior)(1:10:end)')
@@ -50,6 +77,7 @@ annotation_output_goodtracking = outputvector(intersect(frames_with_goodtracking
 [~,annotated_frames_goodtracking] = intersect(frames_with_goodtracking,subset_of_frames_annotated);
 
 %% RUN THE ML ALGORITHM TO FIND SIMILAR FRAMES
+fprintf('searching for similar frames \n')
 [candidate_frames,score,Mdl_test] = findsimilarframes_mlfeatures_multifeatures(ML_features,annotation_output_goodtracking,annotated_frames_goodtracking,subset_of_frames_to_annotate);
 %get only the types of behavior that are found
 unique_predictions = unique(candidate_frames(~isnan(candidate_frames)));
@@ -57,12 +85,17 @@ unique_predictions = unique(candidate_frames(~isnan(candidate_frames)));
 fieldnames_beh(unique_predictions+1)
 
 %% VISUALIZE AN EXAMPLE BEHAVIOR
-candidate_frames_vec = (find(candidate_frames==find(strcmp(fieldnames_beh ,'WetDogShake')==1)-1));
-predicted_annotatedframes= candidate_frames_vec(candidate_frames_vec<80000);
-predicted_unannotatedframes= candidate_frames_vec(candidate_frames_vec>80000);
+chosenbehavior = 'FaceWipe';
+animate_markers_aligned_fullmovie(mocapstruct_all,fulloutput_annotation_struct.(chosenbehavior)(1:10:end)')
+
+candidate_frames_vec = (find(candidate_frames==find(strcmp(fieldnames_beh ,chosenbehavior)==1)-1));
+candidate_frame_predicted = setxor(frames_with_goodtracking(candidate_frames_vec),...
+    intersect(frames_with_goodtracking,fulloutput_annotation_struct.(chosenbehavior)));
+%predicted_annotatedframes= candidate_frames_vec(candidate_frames_vec<80000);
+%predicted_unannotatedframes= candidate_frames_vec(candidate_frames_vec>80000);
 
 %visualize the ground truth and predicted data
-animate_markers_aligned_fullmovie(mocapstruct_all,frames_with_goodtracking(predicted_unannotatedframes(1:10:end))')
+animate_markers_aligned_fullmovie(mocapstruct_all,(candidate_frame_predicted(1:10:end))')
 animate_markers_aligned_fullmovie(mocapstruct_all,frames_with_goodtracking(predicted_annotatedframes(1:10:end))')
 
 %% add other functions to compare real and found
@@ -90,8 +123,8 @@ end
  figure(559)
 legend(legendnames)
 
-
 make_ethogram(outputvector,fieldnames_beh)
         make_dotplot(    candidate_frames,fieldnames_beh,ML_features)
+plot_behavior_examples(mocapstruct_all,fulloutput_annotation_struct.GeneralGroom,indivbouts_annotation_struct.GeneralGroom)
 
 

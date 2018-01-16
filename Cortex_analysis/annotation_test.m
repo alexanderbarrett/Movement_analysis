@@ -21,11 +21,12 @@ for kk = [3]
 MLfeat_25{kk} = get_supervised_features(mocapstructs_25{kk},mocapstructs_25{kk}.modular_cluster_properties.clustering_inds_agg{2},2);
 end
 
-subset = 1:100:25000*100;
+subset = 1:100:10000*100;
  plot_feature_spaces(MLfeat_25{1},subset,'b')
 plot_feature_spaces(MLfeat_25{3},subset,'c')
 plot_feature_spaces(MLfeat_25{2},subset,'r')
 plot_feature_spaces(MLfeat_25{4},subset,'g')
+plot_feature_spaces(MLfeat_25_2{1},subset,'r')
 
 %[mocapstructs_25_2,MLfeat_25_2] = load_mocap_cellarray('JDM25',[1,5,6,10],mocapmasterdirectory);
 ll_list = [1,2,4];

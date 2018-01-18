@@ -7,29 +7,45 @@ ratname = 'Vicon8';
 conditionname = 'Vicon8_caff';
 conditionnumber = 6;
 
+conditionname = 'Vicon8_prelesion';
+conditionnumber = 1;
+
 % for the specific file
-subset_of_frames_to_annotate = 1:2*10^6;
+subset_of_frames_to_annotate = 1:3.5*10^6;
 gapfill_number = 20;
 
 %% can load in multiple filenames
-annotation_mocapname = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon8\20170822\Preprocessed\nolj_Recording_day7_caffeine1_nolj.mat';
+%annotation_mocapname =
+%'Y:\Jesse\Data\Motionanalysis_captures\Vicon8\20170822\Preprocessed\nolj_Recording_day7_caffeine1_nolj.mat';.
+%% FIRST FILE
 annotation_filename = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon8\20170822\Preprocessed\nolj_Recording_day7_caffeine1_nolj_handannotation_JDM.mat';
-annotation_filenumber = 1;
 
+%% SECOND GROUP OF FILES
 annotation_folder = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon8\20170822\Preprocessed\';
-annotation_filenames = {'nolj_Recording_day7_caffeine1_nolj_handannotation_AB_1to48000.mat',...
+annotation_filenames = {'nolj_Recording_day7_caffeine1_nolj_handannotation_JDM.mat',...
+    'nolj_Recording_day7_caffeine1_nolj_handannotation_AB_1to48000.mat',...
     'nolj_Recording_day7_caffeine2_nolj_handannotation_AB_1to23800.mat',...
     'nolj_Recording_day7_caffeine2_nolj_handannotation_AB_23800to53323.mat',...
     'nolj_Recording_day7_caffeine2_nolj_handannotation_AB_53323to64603.mat'};
-annotation_filenumber = {1,2,2,2};
+
+annotation_filenumber = {1,1,2,2,2};
+%% THIRD GROUP 
+annotation_folder = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon8\20170820\Preprocessed\';
+annotation_filenames = {'Recording_day5_overnight27_nolj_handannotation2_AB.mat'}
+annotation_filenumber = {23};
 
 annot_cell = cell(1,numel(annotation_filenames));
 subset_of_frames_annotated = [];
 agg_struct = struct([]);
-for jj = 1:4
+agg_posture = struct([]);
+
+for jj = 1%2:5
 output1 = load(strcat(annotation_folder,annotation_filenames{jj}));
 for kk = fieldnames(output1.output.GlobalBehavior)'
     output1.output.GlobalBehavior.(kk{1}) = output1.output.GlobalBehavior.(kk{1})+(annotation_filenumber{jj}-1)*540000;
+end
+for kk = fieldnames(output1.output.Posture)'
+        output1.output.Posture.(kk{1}) = output1.output.Posture.(kk{1})+(annotation_filenumber{jj}-1)*540000;
 end
 annot_cell{jj} = output1;
 
@@ -39,19 +55,20 @@ maxval = max([C{:}]);
 
 subset_of_frames_annotated = cat(2,subset_of_frames_annotated ,(annotation_filenumber{jj}-1)*540000+minval:maxval); %depends on the file(s) loaded
 agg_struct = mergeStructs_JDM(agg_struct,output1.output.GlobalBehavior);
+agg_posture = mergeStructs_JDM(agg_posture,output1.output.Posture);
 
 end
 subset_of_frames_annotated = unique(subset_of_frames_annotated);
 
-
-outputstruct_annotation = load(annotation_filename);
+[pose_struct_out,globalbehavior_struct_out] = posture_behavior_gapfill(agg_posture,agg_struct);
+%outputstruct_annotation = load(annotation_filename);
 
 
 %% get files and the machine learning features
 descriptor_struct = get_mocap_files_table(conditionnumber,ratname);
  [~,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] = get_mocap_files_shortened(descriptor_struct,mocapmasterdirectory);
  [mocapstruct_all] = preprocess_mocap_data_2(mocapfilearray,mocapfilestruct,descriptor_struct,mocapfiletimes,0,0,[],mocapvideodirectory,0);
-ML_features = get_supervised_features(mocapstruct_all,mocapstruct_all.modular_cluster_properties.clustering_inds_agg{2},2);
+ML_features = get_supervised_features(mocapstruct_all,mocapstruct_all.modular_cluster_properties.clustering_inds_agg{2},2,ratname,'Vicon8_prelesion',0);
 %the frames are the intersection of those that are returned from clipping
 %and in the cluster of markers
 frames_with_goodtracking = intersect(mocapstruct_all.modular_cluster_properties.clustering_inds_agg{2},mocapstruct_all.modular_cluster_properties.clipped_index{2});
@@ -63,6 +80,7 @@ frames_with_goodtracking = intersect(mocapstruct_all.modular_cluster_properties.
 % fill the gaps in the structure
 % in the future can write code to accomodate multiple annotation_files 
 [fulloutput_annotation_struct,indivbouts_annotation_struct] = fillannotationgaps_struct(agg_struct ,gapfill_number);
+[fullposture_annotation_struct,indivbouts_posture_struct] = fillannotationgaps_struct(agg_posture ,gapfill_number);
 
 %visualize a chosen behavior (optional)
 %animate_markers_aligned_fullmovie(mocapstruct_caff,fulloutput_caff_struct.(chosenbehavior)(1:10:end)')
@@ -85,8 +103,8 @@ unique_predictions = unique(candidate_frames(~isnan(candidate_frames)));
 fieldnames_beh(unique_predictions+1)
 
 %% VISUALIZE AN EXAMPLE BEHAVIOR
-chosenbehavior = 'FaceWipe';
-animate_markers_aligned_fullmovie(mocapstruct_all,fulloutput_annotation_struct.(chosenbehavior)(1:10:end)')
+chosenbehavior = 'Still';
+animate_markers_aligned_fullmovie(mocapstruct_all,fulloutput_annotation_struct.(chosenbehavior)(13000:10:end)')
 
 candidate_frames_vec = (find(candidate_frames==find(strcmp(fieldnames_beh ,chosenbehavior)==1)-1));
 candidate_frame_predicted = setxor(frames_with_goodtracking(candidate_frames_vec),...
@@ -96,7 +114,7 @@ candidate_frame_predicted = setxor(frames_with_goodtracking(candidate_frames_vec
 
 %visualize the ground truth and predicted data
 animate_markers_aligned_fullmovie(mocapstruct_all,(candidate_frame_predicted(1:10:end))')
-animate_markers_aligned_fullmovie(mocapstruct_all,frames_with_goodtracking(predicted_annotatedframes(1:10:end))')
+%animate_markers_aligned_fullmovie(mocapstruct_all,frames_with_goodtracking(predicted_annotatedframes(1:10:end))')
 
 %% add other functions to compare real and found
 
@@ -105,26 +123,75 @@ animate_markers_aligned_fullmovie(mocapstruct_all,frames_with_goodtracking(predi
 %Need to refactor this
 colors_plot = hsv(80);
 colors_plot = colorcube(80)./2+lines(80)./2;
+subset_of_points_to_plot = 1:100:100*20000;
+
+%
+mappedX_dyn_angle =  tsne(cat(2,ML_features.spectrogram_pcs_head_angle(subset_of_points_to_plot,1:15),ML_features.spectrogram_pcs_trunk_angle(subset_of_points_to_plot,1:15)));
+mappedX_dyn_head=  tsne(cat(2,ML_features.spectrogram_pcs_head_angle(subset_of_points_to_plot,1:15)));
+
+mappedX_joint =  tsne(cat(2,ML_features.pose_score(subset_of_points_to_plot,1:10),ML_features.appearance_features_agg_score_whitened(subset_of_points_to_plot,1:6),...
+    ML_features.spectrogram_pcs_trunk_angle(subset_of_points_to_plot,1:15),ML_features.spectrogram_pcs_head_angle(subset_of_points_to_plot,1:15)));
+
+mappedX = tsne(cat(2,ML_features.pose_score(subset_of_points_to_plot,1:10),ML_features.appearance_features_agg_score_whitened(subset_of_points_to_plot,1:6)));
+
+
+%get a tsne if desired
+%mappedX=  tsne(cat(2,ML_features.spectrogram_pcs_head_angle(subset_of_points_to_plot,1:10),...
+ %   ML_features.spectrogram_pcs_trunk_angle(subset_of_points_to_plot,1:10)));
+
 legendnames = cell(1,0);
-subset_of_points_to_plot = 1:100:100*10000;
+
+for mm =1:max(candidate_frames)
+       [ framesubset_cand,framesubset_tsne,~] = intersect(subset_of_points_to_plot,find(candidate_frames == mm));
+       
+   if numel(framesubset_cand)
+figure(559)
+plot3(0,0, 0,'o','MarkerEdgeColor','none','MarkerSize',8,'MarkerFaceColor',colors_plot(mm,:))
+hold on
+
+figure(572)
+plot(0, 0,'o','MarkerEdgeColor','none','MarkerSize',8,'MarkerFaceColor',colors_plot(mm,:))
+hold on
+        legendnames{1,size(legendnames,2)+1} = fieldnames_beh{mm+1};
+   end
+end
 
 for mm =1:max(candidate_frames)
    [ framesubset_cand,framesubset_tsne,~] = intersect(subset_of_points_to_plot,find(candidate_frames == mm));
-   if numel(framesubset_cand)
-        legendnames{1,size(legendnames,2)+1} = fieldnames_beh{mm+1};
 
+   if numel(framesubset_cand)
 figure(559)
 plot3(ML_features.pose_score(framesubset_cand,1),ML_features.pose_score(framesubset_cand,2),...
     ML_features.pose_score(framesubset_cand,3),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
-hold on
+
+figure(572)
+plot(mappedX_dyn_angle(framesubset_tsne,1),mappedX_dyn_angle(framesubset_tsne,2),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
+
+
    end
 end
 
  figure(559)
 legend(legendnames)
 
+ figure(572)
+legend(legendnames)
+
 make_ethogram(outputvector,fieldnames_beh)
         make_dotplot(    candidate_frames,fieldnames_beh,ML_features)
 plot_behavior_examples(mocapstruct_all,fulloutput_annotation_struct.GeneralGroom,indivbouts_annotation_struct.GeneralGroom)
 
+% make example PSDs etc. 
+legend_tags = {'caff','bidls','bimc'};
+cellstruct = cell(1,3);
+cellstruct{1} = mocapstruct_caff;
+cellstruct{2} = mocapstruct_concatenated;
+cellstruct{3} = mocapstruct_post_bi;
+timestruct{1} = fulloutput_caff;
+timestruct{2} = fulloutput_DLS2;
+timestruct{3} = fulloutput_mc;
 
+
+for kk =1:3
+multi_plot_marker_characteristics_timerange(cellstruct{kk},timestruct{kk},colorarray{kk},kk)
+end

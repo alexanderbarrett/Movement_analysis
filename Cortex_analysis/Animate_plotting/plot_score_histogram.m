@@ -1,4 +1,4 @@
-function plot_score_histogram(valuesin,colorin,plotno)
+function plot_score_histogram(valuesin,colorin,plotno,titlein)
 
 axissize = size(valuesin);
 [minval,minind] = min(axissize);
@@ -15,6 +15,7 @@ for ind_pick = 1:minval
   %  bar(x,log10(n),'b','EdgeColor','none');
        semilogy(x,(n),'Color',colorin,'Linewidth',2);
      hold on
+     ntitle(strcat(titlein,' no:',num2str(ind_pick)));
 end
 %print('-dpng',strcat(plotdir_here,'posture_eigenvalue_hists.png'))
 end

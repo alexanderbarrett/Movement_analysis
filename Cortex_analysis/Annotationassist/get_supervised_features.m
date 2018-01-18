@@ -1,4 +1,4 @@
-function ML_features = get_supervised_features(mocapstruct,framelist,markersetind)
+function ML_features = get_supervised_features(mocapstruct,framelist,markersetind,ratname,savename,overwrite)
 
 
 %% local pose/dynamics features
@@ -14,11 +14,16 @@ opts.clustering_overlap = opts.fps./4;
 num_eigenpcs = 10;%size(COEFF,1);
 num_dynamics_pcs = 3;
 
-pose_coeff_file = strcat(eigenposture_save_folder,filesep,'pose_coeff.mat');
-dyn_coeff_file = strcat(eigenposture_save_folder,filesep,'dynamics_coeff.mat');
-jadyn_coeff_file = strcat(eigenposture_save_folder,filesep,'ja_coeff.mat');
-appearance_coeff_file = strcat(eigenposture_save_folder,filesep,'appearance_coeff.mat');
-dyn_coeff_file_markers = strcat(eigenposture_save_folder,filesep,'dynamics_coeff_2.mat');
+pose_coeff_file = strcat(eigenposture_save_folder,filesep,'pose_coeff_',ratname,'.mat');
+dyn_coeff_file = strcat(eigenposture_save_folder,filesep,'dynamics_coeff_',ratname,'.mat');
+jadyn_coeff_file = strcat(eigenposture_save_folder,filesep,'ja_coeff_',ratname,'.mat');
+appearance_coeff_file = strcat(eigenposture_save_folder,filesep,'appearance_coeff_',ratname,'.mat');
+dyn_coeff_file_markers = strcat(eigenposture_save_folder,filesep,'dynamics_coeff_2_',ratname,'.mat');
+
+savefilename = strcat(eigenposture_save_folder,filesep,savename);
+if (exist(savefilename,'file') && ~overwrite)
+    load(savefilename)
+else
 
 overwrite_coeff = 0;
 
@@ -555,10 +560,15 @@ ML_features.joint_angles = jointangle_struct_hipass;
 figure(66)
 plot(( jointangle_struct_hipass.(saggital_names{1})))
 
+%% pcs of joint angles here
+fn_ja = fieldnames(jointangle_struct_hipass);
+for ll = 1:numel(fn_ja)
+    fn_ja
 
 
 
-%% pcs here
+
+
 
 
 %% dynamics of the joint angles -- are they cleaner?
@@ -735,8 +745,8 @@ plot3(ML_features.spectrogram_pcs_trunk(1:100:100*10000,1),ML_features.spectrogr
 %get_markersubgroup_velocity(mocapstruct.markers_preproc,[4:8],params);
 %get_filtered_derivative(pose_score_whitened(:,1),numframes);
 %get_window_sd(pose_score_whitened(:,1),numframes);
-
-
+save(savefilename,'ML_features','-v7.3');
+end
 
 
 

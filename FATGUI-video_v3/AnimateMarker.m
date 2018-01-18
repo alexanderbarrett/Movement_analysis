@@ -1,13 +1,6 @@
-function M = AnimateMarker(mocapstruct,frame_inds,hObject, eventdata, handles)
+function AnimateMarker(mocapstruct, frame_inds, hObject, eventdata, handles)
 
-global CurrentFrame;
-
-h=handles.a1;
-% frame_inds = time_ordering_fulltrace{jjj}(1:matlab_fr:min(frames_use,numel(time_ordering_fulltrace{jjj})));
-
-%M{jjj} = movie;
-%Mhere = movie;
-frame_last = 0;
+h = handles.a1;
 
 marker_plot = ones(1,numel(mocapstruct.markernames));
 
@@ -20,7 +13,7 @@ yy = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,
 zz = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,3));
 line(h,xx,yy,zz,'Marker','o','Color',mocapstruct.markercolor{1},'MarkerFaceColor',mocapstruct.markercolor{1},'MarkerSize',6);
 
-if CurrentFrame ==1
+if frame_inds ==1
     
     axis(h,'manual');
     set(h,'Color','k');
@@ -38,7 +31,7 @@ if CurrentFrame ==1
 end
 
 
-for lk = reshape(frame_inds,1,[])%1:10:10000
+for lk = reshape(frame_inds,1,[])
     
     cla(h);
     
@@ -89,7 +82,5 @@ for lk = reshape(frame_inds,1,[])%1:10:10000
     
     drawnow;
     hold(h,'off');
-    
-    frame_last = lk;
-    
+       
 end

@@ -17,25 +17,64 @@ mocapfilestruct = loadmocapfilestruct('JDM25',mocapmasterdirectory);
 [mocapstructs_25_2,MLfeat_25_2] = load_mocap_cellarray('JDM25',[13],mocapmasterdirectory);
 MLfeat_25_2{1} = get_supervised_features(mocapstructs_25_2{1},mocapstructs_25_2{1}.modular_cluster_properties.clustering_inds_agg{2},2);
 
-for kk = [3]
-MLfeat_25{kk} = get_supervised_features(mocapstructs_25{kk},mocapstructs_25{kk}.modular_cluster_properties.clustering_inds_agg{2},2);
+
+save_names = {'JDM25_caff','JDM25_amph','JDM25_prelesion','JDM25_bilesion_late'};
+for kk = [2,3,1,4]
+MLfeat_25{kk} = get_supervised_features(mocapstructs_25{kk},mocapstructs_25{kk}.modular_cluster_properties.clustering_inds_agg{2},2,'JDM25',save_names{kk},1);
 end
 
-subset = 1:100:10000*100;
+
+subset = 1:100:30000*100;
  plot_feature_spaces(MLfeat_25{1},subset,'b')
 plot_feature_spaces(MLfeat_25{3},subset,'c')
 plot_feature_spaces(MLfeat_25{2},subset,'r')
-plot_feature_spaces(MLfeat_25{4},subset,'g')
+plot_feature_spaces(MLfeat_25{4},subset,'r')
 plot_feature_spaces(MLfeat_25_2{1},subset,'r')
+legend('Pre lesion','Post Lesion')
 
 %[mocapstructs_25_2,MLfeat_25_2] = load_mocap_cellarray('JDM25',[1,5,6,10],mocapmasterdirectory);
-ll_list = [1,2,4];
-color_list = {'b','g','r'};
+ll_list = [1,2,3,4];
+color_list = {'k','g','c','r','r'};
 for ll = ll_list
-plot_score_histogram(MLfeat_25{ll}.spectrogram_pcs_head_angle,color_list{find(ll_list == ll)},2);
-plot_score_histogram(MLfeat_25{ll}.spectrogram_pcs_trunk_angle,color_list{find(ll_list == ll)},1);
+%plot_score_histogram(MLfeat_25{ll}.spectrogram_pcs_head_angle,color_list{find(ll_list == ll)},2);
+%plot_score_histogram(MLfeat_25{ll}.spectrogram_pcs_trunk_angle,color_list{find(ll_list == ll)},1);
+plot_score_histogram(MLfeat_25{ll}.spectrogram_pcs_head_angle,color_list{find(ll_list == ll)},3,'Head Angles PC');
+plot_score_histogram(MLfeat_25{ll}.spectrogram_pcs_trunk_angle,color_list{find(ll_list == ll)},4,'Body Angles PC');
+plot_score_histogram(MLfeat_25{ll}.pose_score,color_list{find(ll_list == ll)},5,'Eigenpose score');
+
 %plot_score_histogram(MLfeat_25{ll}.rel_velocity_head_abs_300,color_list{find(ll_list == ll)});
 end
+figure(1003)
+legend('Pre Lesion','Post Lesion')
+figure(1004)
+legend('Pre Lesion','Post Lesion')
+figure(1005)
+legend('Pre Lesion','Post Lesion')
+
+for ll = 1:4
+    figure(399)
+    h=subplot(1,4,ll)
+    
+    visualize_mlfeat_eigenposes(MLfeat_25{1},mocapstructs_25{1},ll,h,2)
+    view([25 1])
+end
+
+ figure(33)
+plot(MLfeat_25{1}.mean_ja_spect{1}(2,:),'b')
+hold on
+plot(MLfeat_25{4}.mean_ja_spect{1}(2,:),'r')
+visualize_mlfeat_dynamicspcs(MLfeat_25{1},1)
+
+[~,inds] = sort(MLfeat_25{1}.spectrogram_pcs_head_angle,1,'descend');
+framesubset_true = intersect(mocapstructs_25{1}.modular_cluster_properties.clustering_inds_agg{2},mocapstructs_25{1}.modular_cluster_properties.clipped_index{2});
+
+val = 3;
+inds_full = unique(bsxfun(@plus,inds((end-1000):end,3),-150:150));
+animate_markers_aligned_fullmovie(mocapstructs_25{1},framesubset_true(inds_full(1:10:end))')
+inds_full_minus = unique(bsxfun(@plus,inds((end-1000):end,2),-150:150));
+
+animate_markers_aligned_fullmovie(mocapstructs_25{1},framesubset_true(inds_full_minus(1:10:end))')
+
 
 [mocapstructs_32,MLfeat_32] = load_mocap_cellarray('JDM32',[1,5,6,9],mocapmasterdirectory);
 %[mocapstructs_25_2,MLfeat_25_2] = load_mocap_cellarray('JDM25',[10],mocapmasterdirectory);
@@ -138,7 +177,7 @@ mocapstruct_post_bi = mocapstruct_post_bi.mocap_struct;
 %     ML_features.spectrogram_pcs_trunk(dynamics_inds,3),'+','MarkerSize',1)
 % 
 figure(588)
-dynamics_inds = 1:100:100*2000;
+dynamics_inds = 1:100:100*10000;
 plot3(ML_features_prel.spectrogram_pcs_head_angle(dynamics_inds,1),ML_features_prel.spectrogram_pcs_head_angle(dynamics_inds,2),...
     ML_features_prel.spectrogram_pcs_head_angle(dynamics_inds,3),'+g','MarkerSize',1)
 
@@ -150,11 +189,15 @@ imagesc(ML_features.spectrogram_coeffs_trunk_angle)
 psd_resynthesis(ML_features.mean_ja_spect{1}(1,:),1:50,'b')
 
 subset = 1:100:100*20000;%size(ML_features.pose_score,1);
-mappedX = tsne(cat(2,ML_features.pose_score(subset,1:6),ML_features.appearance_features_agg_score_whitened(subset,1:6)));
 
 
-mappedX_dyn_angle =  tsne(cat(2,ML_features.spectrogram_pcs_head(subset,1:15),ML_features.spectrogram_pcs_trunk(subset,1:15)));
+mappedX_dyn_angle =  tsne(cat(2,MLfeat_25{2}.spectrogram_pcs_head_angle(subset,1:15),MLfeat_25{2}.spectrogram_pcs_trunk(subset,1:15)));
 mappedX_dyn_head=  tsne(cat(2,MLfeat_25{2}.spectrogram_pcs_head_angle(subset,1:15)));
+
+mappedX_joint =  tsne(cat(2,ML_features.pose_score(subset,1:10),ML_features.appearance_features_agg_score_whitened(subset,1:6),...
+    ML_features.spectrogram_pcs_trunk_angle(subset,1:15),ML_features.spectrogram_pcs_head_angle(subset,1:15)));
+
+mappedX = tsne(cat(2,ML_features.pose_score(subset,1:10),ML_features.appearance_features_agg_score_whitened(subset,1:6)));
 
 
 mappedX_dyn =  tsne(cat(2,ML_features.spectrogram_pcs_head(subset,1:5),ML_features.spectrogram_pcs_trunk(subset,1:5),...

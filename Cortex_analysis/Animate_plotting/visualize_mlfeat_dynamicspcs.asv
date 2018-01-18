@@ -1,0 +1,85 @@
+function visualize_mlfeat_dynamicspcs(ML_features,kkvis)
+
+num_pc = 6;
+num_angle = 5;
+if (kkvis == 1)
+COEFFS = ML_features.spectrogram_coeffs_head_angle;
+else
+    COEFFS = ML_features.spectrogram_coeffs_trunk_angle;
+
+end
+angle_list_name = {'head_angle','trunk_angle'};
+    kk_plot = kkvis;
+
+for pc_plot = 1:6
+    
+    COEFFS_resh= reshape(COEFFS(:,pc_plot),numel( ML_features.ja_freq),[]);
+    deviation = std(ML_features.(strcat('spectrogram_pcs_',angle_list_name{kk_plot}))(:,pc_plot),[],1);
+    
+    summed_coeffs =  ML_features.mean_ja_spect{kk_plot}'+COEFFS_resh*deviation;
+    summed_coeffs_minus =  ML_features.mean_ja_spect{kk_plot}'-COEFFS_resh*deviation;   
+    summed_coeffs_exp =  (10.^(ML_features.mean_ja_spect{kk_plot}'+COEFFS_resh*deviation)-10.^(ML_features.mean_ja_spect{kk_plot}'));
+
+    num_angle = 
+    for angle_plot = 1:5
+        figure(44)
+        subplot(num_angle,num_pc,pc_plot+num_pc*(angle_plot-1))
+        plot(COEFFS_resh(:,angle_plot)*deviation,'r');
+        hold on
+        %plot(ML_features.mean_ja_spect{kk_plot}(angle_plot,:)','k');
+        plot(-COEFFS_resh(:,angle_plot)*deviation,'b' )
+        
+        if (pc_plot == 1)
+            ylabel(ML_features.angle_names{kk_plot}{angle_plot})
+        end
+        if (angle_plot == 1)
+            ntitle(strcat('PC ',num2str(pc_plot)));
+        end
+        
+        
+        
+        figure(45)
+        subplot(num_angle,num_pc,pc_plot+num_pc*(angle_plot-1))
+        plot(summed_coeffs(:,angle_plot),'r');
+        hold on
+        plot(ML_features.mean_ja_spect{kk_plot}(angle_plot,:)','k');
+        plot(summed_coeffs_minus(:,angle_plot),'b' )
+        
+        if (pc_plot == 1)
+            ylabel(ML_features.angle_names{kk_plot}{angle_plot})
+        end
+        if (angle_plot == 1)
+            ntitle(strcat('PC ',num2str(pc_plot)));
+        end
+        
+        figure(46)
+        subplot(num_angle,num_pc,pc_plot+num_pc*(angle_plot-1))
+        plot(exp(summed_coeffs(:,angle_plot)),'r');
+        hold on
+        plot(exp(ML_features.mean_ja_spect{kk_plot}(angle_plot,:)'),'k');
+        plot(exp(summed_coeffs_minus(:,angle_plot)),'b');
+        
+        if (pc_plot == 1)
+            ylabel(ML_features.angle_names{kk_plot}{angle_plot})
+        end
+        if (angle_plot == 1)
+            ntitle(strcat('PC ',num2str(pc_plot)));
+        end
+    end
+end
+
+% C_1    = cell(1, numel(mocapstruct.markercolor));
+% C_1(:) = {'w'};
+% C_2    = cell(1, numel(mocapstruct.markercolor));
+% C_2(:) = {'r'};
+% C_3    = cell(1, numel(mocapstruct.markercolor));
+% C_3(:) = {'b'};
+% 
+% plot_eigenpose_subset(reshape(ML_features.pose_mean+std(ML_features.pose_score(:,ep_no))*ML_features.pose_coeffs(:,ep_no),3,[])',mocapstruct.modular_cluster_properties.cluster_markersets{markersetind},C_2,mocapstruct.links,h)
+% hold on
+% plot_eigenpose_subset(reshape(ML_features.pose_mean,3,[])',mocapstruct.modular_cluster_properties.cluster_markersets{markersetind},C_1,mocapstruct.links,h)
+% plot_eigenpose_subset(reshape(ML_features.pose_mean-std(ML_features.pose_score(:,ep_no))*ML_features.pose_coeffs(:,ep_no),3,[])',mocapstruct.modular_cluster_properties.cluster_markersets{markersetind},C_3,mocapstruct.links,h)
+% hold off
+% view(90,90) 
+
+end

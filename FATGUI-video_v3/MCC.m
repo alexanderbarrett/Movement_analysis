@@ -30,6 +30,14 @@ guidata(hObject, handles);
 
 clc;
 
+global readyToGo;
+
+readyToGo = false;
+
+global videoStatus;
+
+videoStatus = true;
+
 pan(handles.a1,'on');
 
 set(handles.ac1,'Value',1);
@@ -290,6 +298,7 @@ end
 
 % --- Executes on button press in ac1.
 function ac1_Callback(hObject, eventdata, handles)
+
 val = get(handles.ac1,'Value');
 if val == 1 
     set(handles.ac1,'ForegroundColor',[0 0 1]);
@@ -365,9 +374,8 @@ view(handles.a1,[-48, 12]);
 set(handles.(selectedAC.Tag),'Value',1);
 set(handles.uib1,'SelectedObject',selectedAC);
 
-
-% --- Executes on button press in p2.
-function p2_Callback(hObject, eventdata, handles)
+% --- loadExcelFile function
+function loadExcelFile(hObject, eventdata, handles)
 global ErrorFlag1 output outputFieldNames numCols;
 [FileName,FileDir] = uigetfile('*.xlsx','Select the Excel file');
 
@@ -462,13 +470,42 @@ else
 end
 
 
-% --- Executes on button press in p3.
-function p3_Callback(hObject, eventdata, handles)
+% --- Executes on button press in p2.
+function p2_Callback(hObject, eventdata, handles)
+
+loadExcelFile(hObject, eventdata, handles);
+
+
+% --- checkVideoPath
+function [errH status] = checkVideoPath(hObject, eventdata, handles)
+% Check video folder path
+global mocapstruct;
+global videoPathValid;
+videoPathValid = true;
+videoDirPath = mocapstruct.cameradirectory{2};
+if ~exist(videoDirPath, 'dir')
+    
+    videoPathValid = false;
+    
+    errH = errordlg(['Video dir path: ', videoDirPath, ' is not valid. Choose a valid path.'], ...
+        'Video Directory Path Check');
+    status = false;
+         return;
+end
+
+errH = [];
+status = true;
+
+
+% --- loadDataFile function
+function status = loadDataFile(hObject, eventdata, handles)
+
 global mocapstruct ErrorFlag2;
 
 [FileName,FileDir] = uigetfile('*.mat','Select the motion capture data file');
 
 if isnumeric(FileName) || isnumeric(FileDir)
+    status = false;
     return;
 end
 
@@ -493,6 +530,7 @@ end
 if ErrorFlag2
     set(handles.t2,'String','Error: load *.mat file only');
     set(handles.t2,'ForegroundColor',[1,0,0]);
+    status = false;
     return;
 end
 
@@ -508,23 +546,95 @@ if ~ErrorFlag2
     mocapstruct = DataFile{1};
 end
 
+[errH1, VidStatus] = checkVideoPath(hObject, eventdata, handles);
 
-% --- Executes on button press in P4.
-function P4_Callback(hObject, eventdata, handles)
+while ~VidStatus
+    
+    [errH2, VidStatus] = VideoDirMenu_Callback(hObject, eventdata, handles);
+    
+    try
+        delete(errH2);
+    catch
+    end
+    
+end
+
+try
+    delete(errH1);
+catch
+end
+
+status = true;
+
+
+% --- Executes on button press in p3.
+function p3_Callback(hObject, eventdata, handles)
+
+status = loadDataFile(hObject, eventdata, handles);
+
+if ~status
+    return;
+end
+
+continueFATGUI(hObject, eventdata, handles);
+
+global readyToGo
+readyToGo = true;
+
+
+function status = loadWorkSpaceVar(hObject, eventdata, handles)
 global mocapstruct ErrorFlag3;
 
 var = uigetvariables({'Choose motion capture struct variable from MATLAB workspace'},'InputTypes',{'struct'});
 if ~isempty(var) && isstruct(var{1})
     mocapstruct = var{1};
-    set(handles.t3,'String',strcat('Struct Name: ',varname(mocapstruct)));
-    set(handles.t3,'ForegroundColor',[0,0,0]);
+    set(handles.t2,'String',strcat('Struct Name: ',varname(mocapstruct)));
+    set(handles.t2,'ForegroundColor',[0,0,0]);
     ErrorFlag3 = false;
 else
-    set(handles.t3,'String','Error: load struct var again');
-    set(handles.t3,'ForegroundColor',[1,0,0]);
+    set(handles.t2,'String','Error: load struct var again');
+    set(handles.t2,'ForegroundColor',[1,0,0]);
     ErrorFlag3 = true;
+    status = false;
     return;
 end
+
+[errH1, VidStatus] = checkVideoPath(hObject, eventdata, handles);
+
+while ~VidStatus
+    
+    [errH2, VidStatus] = VideoDirMenu_Callback(hObject, eventdata, handles);
+    
+    pause(1)
+    
+    try
+        delete(errH2);
+    catch
+    end
+    
+end
+
+try
+    delete(errH1);
+catch
+end
+
+status = true;
+
+
+% --- Executes on button press in P4.
+function P4_Callback(hObject, eventdata, handles)
+
+status = loadWorkSpaceVar(hObject, eventdata, handles);
+
+if ~status
+    return;
+end
+
+continueFATGUI(hObject, eventdata, handles);
+
+global readyToGo
+readyToGo = true;
 
 % --- isStructEmpty function to check if a nested struct is empty or not
 function res = isStructEmpty(output)
@@ -559,10 +669,11 @@ end
 res = isOutPutEmpty;
 
 
-% --- Executes on button press in p5.
-function p5_Callback(hObject, eventdata, handles)
+% --- continueFATGUI function
+function continueFATGUI(hObject, eventdata, handles)
 global mocapstruct ErrorFlag1 ErrorFlag2 ErrorFlag3; 
 global CurrentFrame TotalFrameNo;
+global videoStatus;
 
 % Initial motion capture data load check
 if ~((~ErrorFlag1 && ~ErrorFlag2) || (~ErrorFlag1 && ~ErrorFlag3))
@@ -577,31 +688,41 @@ end
 global output;
 
 global outputStructName outputStructPath outputStructFullPath backupDirectoryName backupDirectoryFullPath;
-[outputStructName,outputStructPath] = uiputfile('*.mat','Save Output Struct As');
 
-if ~ischar(outputStructName) && ~ischar(outputStructPath)
-    if outputStructName == 0 || outputStructPath == 0
-        errordlg('Error in output struct name','File Name Check');
-        set(handles.p5,'Enable','On');
-        return;
+while true
+    
+    [outputStructName,outputStructPath] = uiputfile('*.mat','Save Output Struct As');
+    
+    try
+        delete(errH)
+    catch
     end
+    
+    if ~ischar(outputStructName) && ~ischar(outputStructPath)
+        if outputStructName == 0 || outputStructPath == 0
+            errH = errordlg('Error in output struct name','File Name Check');
+            continue;
+        end
+    end
+    
+    % Check for valid file name
+    if regexp(outputStructName, '[/\*:?"<>|]', 'once')
+        errordlg('Error in output struct name','File Name Check');
+        continue;
+    end
+    
+    % Check file extension
+    if isempty(strfind(outputStructName,'.mat'))
+        errH = errordlg('Error in output struct file name','Output File Name Check');
+        continue;
+    end
+    
+    break;
+    
 end
 
-% Check for valid file name 
-if regexp(outputStructName, '[/\*:?"<>|]', 'once')
-    errordlg('Error in output struct name','File Name Check');
-    return;
-end
-
-% Check file extension
-
-if isempty(strfind(outputStructName,'.mat'))
-    errordlg('Error in output struct file name','Output File Name Check');
-    return;
-end
-
-outputStructFullPath = strcat(outputStructPath,outputStructName);
-disp(outputStructFullPath);
+outputStructFullPath = strcat(outputStructPath, outputStructName);
+fprintf('The Struc Path: %s\n', outputStructFullPath);
 
 if exist(outputStructFullPath,'file')
 
@@ -611,7 +732,7 @@ if exist(outputStructFullPath,'file')
         while true
             ansAppend = questdlg('The output struct exists and it is NOT empty. Do you want to append data to this file?','Motion Caputre Struct Data Operation','No');
             
-            if ~isempty(ansAppend) && ansAppend ~= 'Cancel'
+            if ~isempty(ansAppend) && ~strcmp(ansAppend, 'Cancel')
                 break
             end
         end
@@ -652,7 +773,12 @@ if (~ErrorFlag1 && ~ErrorFlag2) || (~ErrorFlag1 && ~ErrorFlag3)
     
     % Plot 1st Frame
     CurrentFrame = 1;
-    AnimateMarkerMovie(mocapstruct,CurrentFrame,hObject, eventdata, handles);
+    
+    if videoStatus
+        AnimateMarkerMovie(mocapstruct, CurrentFrame, hObject, eventdata, handles);
+    elseif ~videoStatus
+        AnimateMarker(mocapstruct, CurrentFrame, hObject, eventdata, handles);
+    end
     
     % Get Total Frame Number
     TotalFrameNo = length(mocapstruct.markers_preproc.HeadF);
@@ -660,16 +786,11 @@ if (~ErrorFlag1 && ~ErrorFlag2) || (~ErrorFlag1 && ~ErrorFlag3)
     % Write TotalFrameNo in GUI
     set(handles.t6,'String',num2str(TotalFrameNo));
     
-    % Let's diable Load Excel adn Load Data (File & Workspace) Buttons
-    % set(handles.p2,'Enable','Off'); % Decision left up to user
-    set(handles.p3,'Enable','Off');
-    set(handles.P4,'Enable','Off');
-    set(handles.p5,'Enable','Off');
 else
     errordlg('Error in input struct. Load the motion caption struct first', ...
              'Motion Capture Data Check');
     return;
-end
+end 
 
 
 % --- AddStructFieldFun function
@@ -745,6 +866,7 @@ set(handles.s1,'Value',round(val));
 
 % Play the selected frame
 global mocapstruct CurrentFrame AutoSaveFlag LoadFrameFlag FrameArray;
+global videoStatus;
 
 CurrentFrame = round(val);
 
@@ -756,8 +878,11 @@ if AutoSaveFlag
     SetFrameProperties(handles);
 end
     
-AnimateMarkerMovie(mocapstruct,CurrentFrame,hObject, eventdata, handles);
-
+if videoStatus
+    AnimateMarkerMovie(mocapstruct, CurrentFrame, hObject, eventdata, handles);
+elseif ~videoStatus
+    AnimateMarker(mocapstruct, CurrentFrame, hObject, eventdata, handles);
+end
 
 % --- Executes during object creation, after setting all properties.
 function s1_CreateFcn(hObject, eventdata, handles)
@@ -1283,13 +1408,29 @@ s1_Callback(hObject, eventdata, handles);
 % --- Executes when user attempts to close f1.
 function f1_CloseRequestFcn(hObject, eventdata, handles)
 
-delete(hObject);
 
+ansClose = questdlg('Exit FATGUI application?','FATGUI Application','No');
 
-% --- Executes on button press in p10.
-function p10_Callback(hObject, eventdata, handles)
-
-outputStructQuickSave(handles);
+if strcmp(ansClose, 'Yes')
+    
+    try
+        outputStructQuickSave(handles);
+        
+    catch
+    end
+    
+    try
+        
+        backupOutputStruct(handles);
+    catch
+    end
+    
+    try
+        delete(hObject);
+    catch
+    end
+    
+end
 
 
 function outputStructQuickSave(handles)
@@ -1302,12 +1443,6 @@ set(handles.t14,'String',strcat('Last Time Output File Saved:',{' '}, datestr(no
 
 % Reset timer
 timeCheck = tic;
-
-
-% --- Executes on button press in p11.
-function p11_Callback(hObject, eventdata, handles)
-
-backupOutputStruct(handles);
 
 
 function backupOutputStruct(handles)
@@ -1330,3 +1465,222 @@ end
 
 % Reset the backup time
 BackupTime = 0;
+
+
+
+function eBase_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function eBase_CreateFcn(hObject, eventdata, handles)
+
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --------------------------------------------------------------------
+function FileMenu_Callback(hObject, eventdata, handles)
+set(handles.tg1,'Value', 0);
+set(handles.tg2,'Value', 0);
+set(handles.tg3,'Value', 0);
+set(handles.tg4,'Value', 0);
+
+
+% --------------------------------------------------------------------
+function SaveMenu_Callback(hObject, eventdata, handles)
+outputStructQuickSave(handles);
+
+% --------------------------------------------------------------------
+function BackupMenu_Callback(hObject, eventdata, handles)
+backupOutputStruct(handles);
+
+
+% --------------------------------------------------------------------
+function ExitMenu_Callback(hObject, eventdata, handles)
+
+close(handles.f1);
+
+% --------------------------------------------------------------------
+function LoadMenu_Callback(hObject, eventdata, handles)
+set(handles.tg1,'Value', 0);
+set(handles.tg2,'Value', 0);
+set(handles.tg3,'Value', 0);
+set(handles.tg4,'Value', 0);
+
+% --------------------------------------------------------------------
+function ExcelMenu_Callback(hObject, eventdata, handles)
+
+loadExcelFile(hObject, eventdata, handles);
+
+
+% --------------------------------------------------------------------
+function DataFileMenu_Callback(hObject, eventdata, handles)
+
+status = loadDataFile(hObject, eventdata, handles);
+
+if ~status
+    return;
+end
+
+continueFATGUI(hObject, eventdata, handles);
+
+global readyToGo
+readyToGo = true;
+
+
+% --------------------------------------------------------------------
+function DataWorkSpaceMenu_Callback(hObject, eventdata, handles)
+
+status = loadWorkSpaceVar(hObject, eventdata, handles);
+
+if ~status
+    return;
+end
+
+continueFATGUI(hObject, eventdata, handles);
+
+global readyToGo
+readyToGo = true;
+
+% --------------------------------------------------------------------
+function SettingMenu_Callback(hObject, eventdata, handles)
+set(handles.tg1,'Value', 0);
+set(handles.tg2,'Value', 0);
+set(handles.tg3,'Value', 0);
+set(handles.tg4,'Value', 0);
+
+% --------------------------------------------------------------------
+function VideoMenu_Callback(hObject, eventdata, handles)
+
+global videoStatus;
+global mocapstruct CurrentFrame;
+
+videoStatus = (videoStatus == false);
+
+if videoStatus                      % Video Turned ON
+   
+    %set(handles.a2,'Visible','On');
+    
+    set(handles.VideoMenu,'Label','Turn Video OFF');
+    
+elseif ~videoStatus                 % Video Turned OFF
+
+    %set(handles.a2,'Visible','Off');
+    
+    set(handles.VideoMenu,'Label','Turn Video ON');
+    
+else
+    fprintf('Something went wrong in the code. Global variable videoStatus has a wrong value\n');
+end
+
+if videoStatus
+    AnimateMarkerMovie(mocapstruct, CurrentFrame, hObject, eventdata, handles);
+elseif ~videoStatus
+    AnimateMarker(mocapstruct, CurrentFrame, hObject, eventdata, handles);
+end
+
+
+% --------------------------------------------------------------------
+function [errH, status] = VideoDirMenu_Callback(hObject, eventdata, handles)
+global mocapstruct;
+global videoPathValid;
+
+VideoDirUI = uigetdir(pwd,'Choose Video Directory');
+ 
+if ~VideoDirUI
+    
+    currentVideoPath = mocapstruct.cameradirectory{2};
+    if ~exist(currentVideoPath, 'dir')
+        videoPathValid = false;
+        errH = errordlg(['Video dir path: ', currentVideoPath, ' is not valid. Choose a valid path.'], ...
+            'Video Directory Path Check');
+    end
+    
+    status = false;
+    return;
+end
+
+% Change video directory path
+if ~exist(VideoDirUI, 'dir')
+    videoPathValid = false;
+    errH = errordlg(['Video dir path: ', VideoDirUI, ' is not valid. Choose a valid path.'], ...
+        'Video Directory Path Check');
+    status = false;
+    return;
+else
+    videoPathValid = true;
+    mocapstruct.cameradirectory{2} = VideoDirUI;
+    status = true;
+    errH = [];
+end
+
+
+% --------------------------------------------------------------------
+function PlayMenu_Callback(hObject, eventdata, handles)
+global readyToGo
+if ~readyToGo
+    return;
+end
+set(handles.tg1,'Value', 0);
+set(handles.tg2,'Value', 0);
+set(handles.tg3,'Value', 0);
+set(handles.tg4,'Value', 0);
+
+
+% --------------------------------------------------------------------
+function PlayFFast_Callback(hObject, eventdata, handles)
+global readyToGo
+if ~readyToGo
+    return;
+end
+uicontrol(handles.tg2);
+set(handles.tg2, 'Value', 1);
+tg2_Callback(hObject, eventdata, handles);
+
+
+% --------------------------------------------------------------------
+function PlayBFast_Callback(hObject, eventdata, handles)
+global readyToGo
+if ~readyToGo
+    return;
+end
+uicontrol(handles.tg4);
+set(handles.tg4, 'Value', 1);
+tg4_Callback(hObject, eventdata, handles);
+
+
+% --------------------------------------------------------------------
+function PlayFSlow_Callback(hObject, eventdata, handles)
+global readyToGo
+if ~readyToGo
+    return;
+end
+uicontrol(handles.tg1);
+set(handles.tg1, 'Value', 1);
+tg1_Callback(hObject, eventdata, handles);
+
+
+% --------------------------------------------------------------------
+function PlayBSlow_Callback(hObject, eventdata, handles)
+global readyToGo
+if ~readyToGo
+    return;
+end
+uicontrol(handles.tg3);
+set(handles.tg3, 'Value', 1);
+tg3_Callback(hObject, eventdata, handles);
+
+
+% --------------------------------------------------------------------
+function AutoSaveMenu_Callback(hObject, eventdata, handles)
+global AutoSaveFlag;
+Value = get(handles.c1,'Value');
+Value = (Value == 0);
+set(handles.c1,'Value', Value);
+AutoSaveFlag = get(handles.c1,'Value');
+
+if AutoSaveFlag
+    set(handles.c1,'ForegroundColor',[0 0 1]);
+else
+    set(handles.c1,'ForegroundColor',[0 0 0]);
+end

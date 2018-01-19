@@ -17,6 +17,8 @@ num_dynamics_pcs = 3;
 pose_coeff_file = strcat(eigenposture_save_folder,filesep,'pose_coeff_',ratname,'.mat');
 dyn_coeff_file = strcat(eigenposture_save_folder,filesep,'dynamics_coeff_',ratname,'.mat');
 jadyn_coeff_file = strcat(eigenposture_save_folder,filesep,'ja_coeff_',ratname,'.mat');
+ja_pose_coeffs_file = strcat(eigenposture_save_folder,filesep,'ja_pose_coeff_',ratname,'.mat');
+
 appearance_coeff_file = strcat(eigenposture_save_folder,filesep,'appearance_coeff_',ratname,'.mat');
 dyn_coeff_file_markers = strcat(eigenposture_save_folder,filesep,'dynamics_coeff_2_',ratname,'.mat');
 
@@ -25,7 +27,7 @@ if (exist(savefilename,'file') && ~overwrite)
     load(savefilename)
 else
 
-overwrite_coeff = 0;
+overwrite_coeff = 1;
 
 framelist_true = intersect(mocapstruct.modular_cluster_properties.clipped_index{markersetind},framelist);
 
@@ -516,6 +518,9 @@ segment_pairs = {{'HeadB','HeadL'},{'HeadF','HeadB'},{'HeadB','SpineF'},{'SpineF
     {'SpineL','SpineM'},{'SpineL','HipL'},{'SpineL','HipR'},};
 
 jointangle_struct = struct();
+mean_seglengths = struct();
+
+
 for ll = 1:numel(saggital_pairs)
     vec1 =  mocapstruct.markers_aligned_preproc.(segment_pairs{saggital_pairs{ll}(1)}{1})-...
         mocapstruct.markers_aligned_preproc.(segment_pairs{saggital_pairs{ll}(1)}{2});
@@ -524,8 +529,10 @@ for ll = 1:numel(saggital_pairs)
         mocapstruct.markers_aligned_preproc.(segment_pairs{saggital_pairs{ll}(2)}{2});
     % jointangle_struct.saggital_names{ll} = [];
     jointangle_struct.(saggital_names{ll}) = ...
-        acos(dot(vec1(framelist_true,saggital_inds)',vec2(framelist_true,saggital_inds)')...
+        acosd(dot(vec1(framelist_true,saggital_inds)',vec2(framelist_true,saggital_inds)')...
         ./(sqrt(sum(vec1(framelist_true,saggital_inds).^2,2)).*sqrt(sum(vec2(framelist_true,saggital_inds).^2,2)))')';
+    mean_seglengths.(saggital_names{ll}) = [nanmean(sqrt(sum(vec1(framelist_true,saggital_inds).^2,2))) ...
+        nanmean(sqrt(sum(vec2(framelist_true,saggital_inds).^2,2)))];
 end
 
 for ll = 1:numel(coronal_pairs)
@@ -536,8 +543,11 @@ for ll = 1:numel(coronal_pairs)
         mocapstruct.markers_aligned_preproc.(segment_pairs{coronal_pairs{ll}(2)}{2});
     % jointangle_struct.saggital_names{ll} = [];
     jointangle_struct.(coronal_names{ll}) = ...
-        acosd(dot(vec1(framelist_true,saggital_inds)',vec2(framelist_true,coronal_inds)')...
+        acosd(dot(vec1(framelist_true,coronal_inds)',vec2(framelist_true,coronal_inds)')...
         ./(sqrt(sum(vec1(framelist_true,coronal_inds).^2,2)).*sqrt(sum(vec2(framelist_true,coronal_inds).^2,2)))')';
+    
+        mean_seglengths.(coronal_names{ll}) = [nanmean(sqrt(sum(vec1(framelist_true,coronal_inds).^2,2))) ...
+        nanmean(sqrt(sum(vec2(framelist_true,coronal_inds).^2,2)))];
 end
 
 
@@ -551,25 +561,90 @@ for ll = 1:numel(transverse_pairs)
     jointangle_struct.(transverse_names{ll}) = ...
         acosd(dot(vec1(framelist_true,transverse_inds)',vec2(framelist_true,transverse_inds)')...
         ./(sqrt(sum(vec1(framelist_true,transverse_inds).^2,2)).*sqrt(sum(vec2(framelist_true,transverse_inds).^2,2)))')';
+    
+    mean_seglengths.(transverse_names{ll}) = [nanmean(sqrt(sum(vec1(framelist_true,transverse_inds).^2,2))) ...
+        nanmean(sqrt(sum(vec2(framelist_true,transverse_inds).^2,2)))];
 end
 
+ML_features.joint_angles_mean = structfun(@nanmean,(jointangle_struct));
 jointangle_struct_hipass=hipass_clip_fragments(jointangle_struct,1:numel(jointangle_struct.head_sagg),params);
 
 ML_features.joint_angles = jointangle_struct_hipass;
+ML_features.mean_seg_lengths = reshape(struct2array(mean_seglengths),[numel(fieldnames(ML_features.joint_angles)) 2]);
 
 figure(66)
 plot(( jointangle_struct_hipass.(saggital_names{1})))
 
 %% pcs of joint angles here
 fn_ja = fieldnames(jointangle_struct_hipass);
+agg_ja_features = [];
 for ll = 1:numel(fn_ja)
-    fn_ja
+    agg_ja_features = cat(2,agg_ja_features,jointangle_struct.(fn_ja{ll}));
+end
+agg_ja_features = bsxfun(@minus,agg_ja_features,mean(agg_ja_features,1));
 
 
+if (~exist(ja_pose_coeffs_file,'file') || overwrite_coeff)
+        [COEFFS, dyadic_spectrograms, ~, ~,explained] = pca(squeeze(agg_ja_features));
+            save(ja_pose_coeffs_file,'COEFF','explained');
+else
+        load(ja_pose_coeffs_file);
+end
+dyadic_spectrograms = agg_ja_features*COEFFS;
+
+ML_features.ja_pca_coeffs = COEFFS;
+ML_features.ja_dyadic_spectrograms = dyadic_spectrograms(:,1:end);
+ML_features.ja_pca_explained = explained;
+
+% figure(98)
+% plot3(dyadic_spectrograms(1:100:100*20000,1),dyadic_spectrograms(1:100:100*20000,2),dyadic_spectrograms(1:100:100*20000,3),'+r')
+
+% 
+% mappedx = tsne(dyadic_spectrograms(1:100:100*5000,:));
+% figure(98)
+% plot(mappedx(:,1),mappedx(:,2),'+')
+% 
 
 
+%% look at pcs of the eigenangles
+agg_features=[];
+for ll = 1:size(dyadic_spectrograms,2)
+    dHipass = designfilt('highpassiir', 'FilterOrder', 3, 'HalfPowerFrequency', 0.5/(params.fps/2), ...
+        'DesignMethod', 'butter');
+    [f1_hipass,f2_hipass] = tf(dHipass);
+    frame_fragment = filtfilt(f1_hipass,f2_hipass,dyadic_spectrograms(:,1));
+    
+    %figure(101)
+   % plot(frame_fragment)
+%     [S,t,f]=mtspecgramc(frame_fragment,[1 0.5],params);
+%     dyadic_spectrograms_temp = (S(:,1:50).^2)';
+    
+    [dyadic_spectrograms_temp,fr_temp,tout] = get_dyadic_spectrogram(frame_fragment(:,1)',opts);   
+    zsc_dy = exp(dyadic_spectrograms_temp(:,:));
+    zsc_dy = bsxfun(@rdivide,bsxfun(@minus,zsc_dy,median(zsc_dy,2)),mad(zsc_dy,[],2));%,mad(zsc_dy,[],2));%zsc_dy
+    % zsc_dy = exp(dyadic_spectrograms_temp(:,:));
+    % zsc_dy(zsc_dy>1) = 1;
+    zsc_dy = bsxfun(@rdivide,zsc_dy,sum(zsc_dy,1));
+    zsc_dy(zsc_dy>2) = 2;     
+    zsc_dy(zsc_dy<0) = 0;     
+good_freq = find(fr_temp<30);
 
+    agg_features = cat(1,agg_features,zsc_dy(good_freq,:));
+%     figure(99)
+%     plot(fr_temp,(zsc_dy(:,10:10:500)))
+% %     
+% %     %plot(fr_temp,exp(dyadic_spectrograms_temp(:,1:10:400)))
+%     figure(100)
+%     ax(1)= subplot(2,1,1)
+%     imagesc(tout,fr_temp,zsc_dy);%bsxfun(@rdivide,zsc_dy,sum(zsc_dy,1)))
+%    % caxis([0 0.1])
+%     ax(2)= subplot(2,1,2)
+%     plot(0:1./300:(numel(frame_fragment)-1)./300,frame_fragment)
+%     linkaxes(ax,'x')
+end
+        [COEFFS_feat{kk}, dyadic_spectrograms_score, ~, ~,explained] = pca(agg_features');
 
+ML_features.ja_pca_spectrogrampcs = dyadic_spectrograms_score(:,1:15);
 
 %% dynamics of the joint angles -- are they cleaner?
 head_angles = {'head_sagg','head_trans','neck_sagg','neck_trans','head_coronal'};
@@ -594,33 +669,50 @@ for kk = 1:numel(angle_lists)
     
     % should refactor this get_dyadic_pcs(clipped_pre,rel_velocity_markers{kk},opts)
     agg_features_here = [];
-    for ll = 1:numel( angle_lists{kk})
-        agg_features_here = cat(2,agg_features_here,ML_features.joint_angles.( angle_lists{kk}{ll}));
-    end
-    %  [dyadic_spectrograms,fr,~] = get_dyadic_spectrogram( agg_features_here',opts);
     dyadic_spectrograms = [];
-    for jj = 1:size(agg_features_here,2)
-        %        [~,fr_temp,~,dyadic_spectrograms_temp] = spectrogram(agg_features_here(:,jj),opts.clustering_window,...
-        %   opts.clustering_overlap,1:30,opts.fps);
+    for ll = 1:numel( angle_lists{kk})
         
-        params.tapers = [3 5];
-        params.Fs = 300;
         
-        [S,t,f]=mtspecgramc( bsxfun(@minus,agg_features_here(:,jj),mean(agg_features_here(:,jj),1)),[1 0.25],params);
-        dyadic_spectrograms_temp = (S(:,1:50).^2)';
-        ML_features.mean_ja_spect{kk}(jj,:) = mean(log(dyadic_spectrograms_temp),2)';
-        
-        %      figure(33)
-        %         imagesc(t,f,log(S.^2)')
-        %         ylim([0 30])
-        %         %S2 = dyadic_spectrograms_temp';
-        %         figure(34)
-        %         induse = 1:30;
-        %         plot(f(induse),mean(log10(S(:,1:30)),1))
-        %
-        dyadic_spectrograms = cat(1,dyadic_spectrograms,dyadic_spectrograms_temp);
+    [dyadic_spectrograms_temp,fr_temp,tout] = get_dyadic_spectrogram(ML_features.joint_angles.(angle_lists{kk}{ll})',opts);   
+    zsc_dy = exp(dyadic_spectrograms_temp(:,:));
+    zsc_dy = bsxfun(@rdivide,bsxfun(@minus,zsc_dy,median(zsc_dy,2)),mad(zsc_dy,[],2));%,mad(zsc_dy,[],2));%zsc_dy
+    % zsc_dy = exp(dyadic_spectrograms_temp(:,:));
+    % zsc_dy(zsc_dy>1) = 1;
+    zsc_dy = bsxfun(@rdivide,zsc_dy,sum(zsc_dy,1));
+    zsc_dy(zsc_dy>2) = 2;     
+    zsc_dy(zsc_dy<0) = 0;     
+good_freq = find(fr_temp<30);
+                dyadic_spectrograms = cat(1,dyadic_spectrograms,zsc_dy(good_freq,:));
+
     end
-    dyadic_spectrograms = log( dyadic_spectrograms);
+%     
+%     %  [dyadic_spectrograms,fr,~] = get_dyadic_spectrogram( agg_features_here',opts);
+%     dyadic_spectrograms = [];
+%     for jj = 1:size(agg_features_here,2)
+% %                [~,fr_temp,~,dyadic_spectrograms_temp] = spectrogram(agg_features_here(:,jj),opts.clustering_window,...
+% %           opts.clustering_overlap,1:30,opts.fps);
+%         
+% %         params.tapers = [3 5];
+% %         params.Fs = 300;
+% %         
+% %         [S,t,f]=mtspecgramc( bsxfun(@minus,agg_features_here(:,jj),mean(agg_features_here(:,jj),1)),[1 1],params);
+% %         dyadic_spectrograms_temp = (S(:,1:50).^2)';
+% %         
+%         
+%         
+%        
+%        figure(102)
+%        imagesc(1:size(dyadic_spectrograms_temp,2),fr_temp,(dyadic_spectrograms_temp))
+%        
+%                 imagesc(log(dyadic_spectrograms_temp))
+% 
+%       %  dyadic_spectrograms_temp = bsxfun(@rdivide,dyadic_spectrograms_temp,sum(dyadic_spectrograms_temp,2));
+%         ML_features.mean_ja_spect{kk}(jj,:) = mean(log(dyadic_spectrograms_temp),2)';
+%         
+%       
+%         dyadic_spectrograms = cat(1,dyadic_spectrograms,dyadic_spectrograms_temp);
+%     end
+%     dyadic_spectrograms = log( dyadic_spectrograms);
     
     %% if need new coefficients -- these are constant across files
     if (~exist(jadyn_coeff_file,'file') || overwrite_coeff)
@@ -632,16 +724,20 @@ for kk = 1:numel(angle_lists)
         dyadic_spectrograms_score = bsxfun(@minus,squeeze(dyadic_spectrograms),mean(squeeze(dyadic_spectrograms),2) )'*squeeze( COEFFS_feat{kk});
     end
     
-    replication_factor = floor(size(agg_features_here,1)./size(dyadic_spectrograms_score,1));
+    replication_factor = floor(size(ML_features.joint_angles.(angle_lists{kk}{ll}),1)./size(dyadic_spectrograms_score,1));
     dynamics_pcs = repelem(dyadic_spectrograms_score(:,1:num_spectrogram_pcs),replication_factor,1);
     dynamics_pcs = cat(1,dynamics_pcs,zeros(size(agg_features_here,1)-size(dynamics_pcs,1),size(dynamics_pcs,2)));
-    
-    ML_features.ja_freq = f(1:50);
+    num_spectrogram_pcs = 25;
+    ML_features.ja_freq = fr_temp(good_freq);
+    ML_features.(strcat('spectrogram_pcs_',angle_list_name{kk},'_explained')) = explained;
     ML_features.(strcat('spectrogram_pcs_',angle_list_name{kk})) = dynamics_pcs;
     ML_features.(strcat('spectrogram_coeffs_',angle_list_name{kk})) = COEFFS_feat{kk}(:,1:num_spectrogram_pcs);
-    
+    ML_features.ja_dyn_explained = explained;
 end
 
+if (~exist( jadyn_coeff_file,'file') || overwrite_coeff)
+    save( jadyn_coeff_file,'COEFFS_feat','explained')
+end
 
 num_pc = 6;
 num_angle = 5;
@@ -650,23 +746,20 @@ for pc_plot = 1:6
     kk_plot = 1;
     
     COEFFS_resh= reshape(COEFFS_feat{kk_plot}(:,pc_plot),numel( ML_features.ja_freq),[]);
-    deviation = std(ML_features.(strcat('spectrogram_pcs_',angle_list_name{kk_plot}))(:,pc_plot),[],1);
+    deviation = nanstd(ML_features.(strcat('spectrogram_pcs_',angle_list_name{kk_plot}))(:,pc_plot),[],1);
     
-    summed_coeffs =  ML_features.mean_ja_spect{kk_plot}'+COEFFS_resh*deviation;
-    summed_coeffs_minus =  ML_features.mean_ja_spect{kk_plot}'-COEFFS_resh*deviation;
+    summed_coeffs =  COEFFS_resh*deviation;%ML_features.mean_ja_spect{kk_plot}'+COEFFS_resh*deviation;
+    summed_coeffs_minus =  -COEFFS_resh*deviation;%ML_features.mean_ja_spect{kk_plot}'-COEFFS_resh*deviation;
     
-    summed_coeffs_exp =  (10.^(ML_features.mean_ja_spect{kk_plot}'+COEFFS_resh*deviation)-10.^(ML_features.mean_ja_spect{kk_plot}'));
-    
-    
+    summed_coeffs_exp = summed_coeffs;% (10.^(ML_features.mean_ja_spect{kk_plot}'+COEFFS_resh*deviation)-10.^(ML_features.mean_ja_spect{kk_plot}'));
+
     for angle_plot = 1:5
-        
-        
         figure(44)
         subplot(num_angle,num_pc,pc_plot+num_pc*(angle_plot-1))
-        plot(COEFFS_resh(:,angle_plot)*deviation,'r');
+        plot(ML_features.ja_freq,COEFFS_resh(:,angle_plot)*deviation,'r');
         hold on
         %plot(ML_features.mean_ja_spect{kk_plot}(angle_plot,:)','k');
-        plot(-COEFFS_resh(:,angle_plot)*deviation,'b' )
+        plot(ML_features.ja_freq,-COEFFS_resh(:,angle_plot)*deviation,'b' )
         
         if (pc_plot == 1)
             ylabel(ML_features.angle_names{kk_plot}{angle_plot})
@@ -679,10 +772,10 @@ for pc_plot = 1:6
         
         figure(45)
         subplot(num_angle,num_pc,pc_plot+num_pc*(angle_plot-1))
-        plot(summed_coeffs(:,angle_plot),'r');
+        plot(ML_features.ja_freq,summed_coeffs(:,angle_plot),'r');
         hold on
-        plot(ML_features.mean_ja_spect{kk_plot}(angle_plot,:)','k');
-        plot(summed_coeffs_minus(:,angle_plot),'b' )
+       % plot(ML_features.mean_ja_spect{kk_plot}(angle_plot,:)','k');
+        plot(ML_features.ja_freq,summed_coeffs_minus(:,angle_plot),'b' )
         
         if (pc_plot == 1)
             ylabel(ML_features.angle_names{kk_plot}{angle_plot})
@@ -693,10 +786,10 @@ for pc_plot = 1:6
         
         figure(46)
         subplot(num_angle,num_pc,pc_plot+num_pc*(angle_plot-1))
-        plot(exp(summed_coeffs(:,angle_plot)),'r');
+        plot(ML_features.ja_freq,exp(summed_coeffs(:,angle_plot)),'r');
         hold on
-        plot(exp(ML_features.mean_ja_spect{kk_plot}(angle_plot,:)'),'k');
-        plot(exp(summed_coeffs_minus(:,angle_plot)),'b');
+       % plot(exp(ML_features.mean_ja_spect{kk_plot}(angle_plot,:)'),'k');
+        plot(ML_features.ja_freq,exp(summed_coeffs_minus(:,angle_plot)),'b');
         
         if (pc_plot == 1)
             ylabel(ML_features.angle_names{kk_plot}{angle_plot})
@@ -706,28 +799,27 @@ for pc_plot = 1:6
         end
     end
 end
-if (~exist( jadyn_coeff_file,'file') || overwrite_coeff)
-    save( jadyn_coeff_file,'COEFFS_feat')
-end
 
+% 
+% 
+% figure(98)
+% plot3(ML_features.spectrogram_pcs_head_angle(1:100:100*10000,1),ML_features.spectrogram_pcs_head_angle(1:100:100*10000,2),ML_features.spectrogram_pcs_head_angle(1:100:100*10000,3),'+r')
+% 
+% figure(108)
+% plot3(ML_features.spectrogram_pcs_trunk(1:100:100*10000,1),ML_features.spectrogram_pcs_trunk(1:100:100*10000,2),ML_features.spectrogram_pcs_trunk(1:100:100*10000,3),'+r')
+ figure(108)
 
-
-figure(98)
-plot3(ML_features.spectrogram_pcs_head_angle(1:100:100*10000,1),ML_features.spectrogram_pcs_head_angle(1:100:100*10000,2),ML_features.spectrogram_pcs_head_angle(1:100:100*10000,3),'+r')
-
-figure(108)
-plot3(ML_features.spectrogram_pcs_trunk(1:100:100*10000,1),ML_features.spectrogram_pcs_trunk(1:100:100*10000,2),ML_features.spectrogram_pcs_trunk(1:100:100*10000,3),'+r')
-% % % plot3(dyadic_spectrograms_score(:,1),dyadic_spectrograms_score(:,2),dyadic_spectrograms_score(:,3),'+')
-% % % plot3(ML_features.spectrogram_pcs_hipR(:,1),ML_features.spectrogram_pcs_hipR(:,2),ML_features.spectrogram_pcs_hipR(:,3),'+')
-% % %
-% % %
+plot3(dyadic_spectrograms_score(:,1),dyadic_spectrograms_score(:,2),dyadic_spectrograms_score(:,3),'+')
+% % % % plot3(ML_features.spectrogram_pcs_hipR(:,1),ML_features.spectrogram_pcs_hipR(:,2),ML_features.spectrogram_pcs_hipR(:,3),'+')
+% % % %
+% % % %
 %   subset = 1:100:100*2400;
-%  % mapped = tsne(cat(2,ML_features.spectrogram_pcs_head(subset,1:15)));
-%    mapped = tsne(cat(2,ML_features.spectrogram_pcs_head(subset,1:15),ML_features.spectrogram_pcs_trunk(subset,1:15)));
-%
+%  mapped = tsne(cat(2,ML_features.spectrogram_pcs_trunk_angle(1:200:200*2400,1:15),ML_features.spectrogram_pcs_head_angle(1:200:200*2400,1:15)));
+% %    mapped = tsne(cat(2,ML_features.spectrogram_pcs_head(subset,1:15),ML_features.spectrogram_pcs_trunk(subset,1:15)));
+% % %
 %    figure(22)
 % plot(mapped(:,1),mapped(:,2),'+')
-%
+
 %  figure(102)
 %  imagesc(ML_features.spectrogram_coeffs_head)
 %

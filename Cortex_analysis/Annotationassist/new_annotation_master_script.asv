@@ -102,10 +102,6 @@ frames_with_goodtracking = intersect(mocapstruct_all.modular_cluster_properties.
 [outputvector,fieldnames_beh,observed_behaviors] = generate_categorical_output(fulloutput_annotation_struct,numel(subset_of_frames_annotated));
 fieldnames_beh = cat(1,'null',fieldnames_beh); %there is a 0 for unannotated in the categorical vector
 
-%% remove unannotated frames
-[~,ind_unannotated] = intersect(subset_of_frames_annotated,find(outputvector == 0));
-subset_of_frames_annotated(ind_unannotated)= [];
-
 % get the outputvector
 [ind_for_outputvec,annotated_frames_goodtracking,~] = intersect(frames_with_goodtracking,subset_of_frames_annotated);
 annotation_output_goodtracking = outputvector(ind_for_outputvec);
@@ -121,8 +117,8 @@ unique_predictions = unique(candidate_frames(~isnan(candidate_frames)));
 fieldnames_beh(unique_predictions+1)
 
 %% VISUALIZE AN EXAMPLE BEHAVIOR
+chosenbehavior = 'Digging';
 animate_markers_aligned_fullmovie(mocapstruct_all,fulloutput_annotation_struct.(chosenbehavior)(1:10:end)')
-chosenbehavior = 'RArmGroom';
 
 candidate_frames_vec = (find(candidate_frames==find(strcmp(fieldnames_beh ,chosenbehavior)==1)-1));
 candidate_frame_predicted = setxor(frames_with_goodtracking(candidate_frames_vec),...
@@ -141,7 +137,7 @@ animate_markers_aligned_fullmovie(mocapstruct_all,(candidate_frame_predicted(1:1
 %Need to refactor this
 colors_plot = hsv(80);
 colors_plot = colorcube(80)./2+lines(80)./2;
-subset_of_points_to_plot = 1:100:100*30000;
+subset_of_points_to_plot = 1:100:100*3000;
 
 %
 mappedX_dyn_angle =  tsne(cat(2,ML_features.spectrogram_pcs_trunk_angle(subset_of_points_to_plot,1:15)));
@@ -181,16 +177,16 @@ for mm =1:max(candidate_frames)
 
    if numel(framesubset_cand)
 figure(559)
-plot3(ML_features.pose_score(framesubset_cand,1),ML_features.pose_score(framesubset_cand,2),...
-    ML_features.pose_score(framesubset_cand,3),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
-% 
-% plot3(ML_features.ja_dyadic_spectrograms(framesubset_cand,1),ML_features.ja_dyadic_spectrograms(framesubset_cand,2),...
-%     ML_features.ja_dyadic_spectrograms(framesubset_cand,3),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
+% plot3(ML_features.pose_score(framesubset_cand,1),ML_features.pose_score(framesubset_cand,2),...
+%     ML_features.pose_score(framesubset_cand,3),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
 
-%ML_features.ja_dyadic_spectrograms;
+plot3(ML_features.ja_dyadic_spectrograms(framesubset_cand,1),ML_features.ja_dyadic_spectrograms(framesubset_cand,2),...
+    ML_features.ja_dyadic_spectrograms(framesubset_cand,3),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
 
-%figure(572)
-%plot(mappedX_dyn_angle(framesubset_tsne,1),mappedX_dyn_angle(framesubset_tsne,2),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
+ML_features.ja_dyadic_spectrograms;
+
+figure(572)
+plot(mappedX_dyn_angle(framesubset_tsne,1),mappedX_dyn_angle(framesubset_tsne,2),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
 
 
    end

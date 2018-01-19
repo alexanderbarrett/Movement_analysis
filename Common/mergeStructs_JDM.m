@@ -24,7 +24,7 @@ function [pullStruct] = mergeStructs_JDM(pushStruct,pullStruct)
     for name = 1:length(pushNames)
         iPushName = pushNames{name};
         % don't overwrite
-    	if (strmatch(iPushName,pullNames))
+    	if (strmatch(iPushName,pullNames,'exact'))
             pullStruct.(iPushName) = cat(2,pullStruct.(iPushName),pushStruct.(iPushName));
         else
       pullStruct.(iPushName) = pushStruct.(iPushName);

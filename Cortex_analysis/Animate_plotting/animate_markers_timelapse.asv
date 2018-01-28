@@ -1,6 +1,5 @@
-function M = animate_markers_aligned_fullmovie(mocapstruct,frame_inds)
+function M = animate_markers_timelapse(mocapstruct,frame_inds,h)
 %matlab_fr = 10;
-h=figure(370)
 % frame_inds = time_ordering_fulltrace{jjj}(1:matlab_fr:min(frames_use,numel(time_ordering_fulltrace{jjj})));
 
 %M{jjj} = movie;
@@ -20,7 +19,7 @@ marker_plot = ones(1,numel(mocapstruct.markernames));
 xx = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,1));
 yy = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,2));
 zz = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{1})(1,3));
-line(xx,yy,zz,'Marker','o','Color',mocapstruct.markercolor{1},'MarkerFaceColor',mocapstruct.markercolor{1},'MarkerSize',6);
+line(xx,yy,zz,'Marker','o','Color',mocapstruct.markercolor{1},'MarkerFaceColor','k','MarkerSize',1);
 
     
     ax = gca;
@@ -41,8 +40,17 @@ line(xx,yy,zz,'Marker','o','Color',mocapstruct.markercolor{1},'MarkerFaceColor',
 
         
        % datestr(datenum(mocapstruct_social.mocapfiletimes{1})+300./(300*60*60*24))
-for lk = reshape(frame_inds,1,[])%1:10:10000
-     cla;
+       framesuse = reshape(frame_inds,[],1);
+       %framesuse = framesuse(1:8:min(120,(numel(framesuse))));
+       framesuse =randsample(framesuse,min(25,numel(framesuse)));
+       markersize_here = 3;
+       linewidth_here = 1;
+
+    
+       % compute_eigenposes(mocapstruct,mocapstruct.modular_cluster_properties,2,frame_inds)
+        
+for lk =framesuse' %1:10:10000
+    % cla;
     
   %  set(handles.t4,'String',num2str(lk));
     
@@ -64,7 +72,7 @@ for lk = reshape(frame_inds,1,[])%1:10:10000
             xx = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{jj})(ind_to_plot,1));
                 yy = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{jj})(ind_to_plot,2));
                 zz = squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{jj})(ind_to_plot,3));
-                handles_here{jj} = line(xx,yy,zz,'Marker','o','Color',mocapstruct.markercolor{jj},'MarkerFaceColor',mocapstruct.markercolor{jj},'MarkerSize',8);
+                handles_here{jj} = line(xx,yy,zz,'Marker','o','Color',mocapstruct.markercolor{jj},'MarkerFaceColor',mocapstruct.markercolor{jj},'MarkerSize',markersize_here);
                 
                 
             
@@ -88,7 +96,7 @@ for lk = reshape(frame_inds,1,[])%1:10:10000
                     squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(2)})(ind_to_plot,2))];
                 zz = [squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(1)})(ind_to_plot,3)) ...
                     squeeze(mocapstruct.markers_aligned_preproc.(mocapstruct.markernames{mocapstruct.links{mm}(2)})(ind_to_plot,3))];
-                line(xx,yy,zz,'Color',mocapstruct.markercolor{mocapstruct.links{mm}(1)},'LineWidth',3);
+                line(xx,yy,zz,'Color',mocapstruct.markercolor{mocapstruct.links{mm}(1)},'LineWidth',linewidth_here);
                 
                 
                 
@@ -103,15 +111,15 @@ for lk = reshape(frame_inds,1,[])%1:10:10000
     end
 
     
-       % title(strcat('  Frame: ' ,datestr(base_time+lk./(mocapstruct.fps*60*60*24))),'Color','w')
+     %   title(strcat('  Frame: ' ,datestr(base_time+lk./(mocapstruct.fps*60*60*24))),'Color','w')
     
     
-    drawnow 
-    hold off
+   % drawnow 
+   % hold off
   
     frame_last = lk;
     
-        M(find(frame_inds == lk)) =  getframe(gcf);
+       % M(find(frame_inds == lk)) =  getframe(gcf);
 
     %clf
 end

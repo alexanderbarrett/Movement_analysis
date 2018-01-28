@@ -5,6 +5,7 @@ featureuse = cat(2,ML_features.pose_score(:,:),ML_features.trunk_vel(1,:)',ML_fe
    ML_features.absolute_velocity_trunk_abs_100,ML_features.absolute_velocity_trunk_abs_100,...
    ML_features.rel_velocity_hipL_abs_100,ML_features.rel_velocity_hipR_abs_100,...
    ML_features.rel_velocity_head_abs_100,ML_features.rel_std_velocity_head_abs_100);
+
 featureuse_train =featureuse(framesubset_search,:);
 % 
 % labels = zeros(1,numel(framesubset_search));

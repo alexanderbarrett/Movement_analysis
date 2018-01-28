@@ -1,4 +1,4 @@
-function [wavelet_coeffs]= WaveletCluster(features, frames, opts ,wtpre,frpre)
+function [wavelet_coeffs,wtAll,fr]= WaveletCluster(features, frames, opts ,wtpre,frpre)
 
 % DEPENDENCIES:
 % addpath(genpath(...\Movement_analysis-master\MotionMapper-master\));

@@ -75,43 +75,41 @@ time_intersect = intersect(modular_cluster_properties_social.clustering_inds_agg
 
 
 %% choose frames to synchronize,load videos
- v = VideoWriter(strcat(savedirectory,'sbys_movie_social'),'MPEG-4');
-                
-                open(v)   
-                
-                
-                 
-    filename = '\\olveczky.rc.fas.harvard.edu\Jesse\Data\Motionanalysis_captures\Vicon8\20170821\Preprocessed\social_2.mat';
-    mocapstruct_social = load(filename);
-    
-    %load in the motion capture struct the field 'matched frames aligned'
-    %defines the corresponding videoframe for each motion capture frame.
-    %The video is at 50 Hz MOCAP at 300 Hz, so multiple motion capture
-    %frames match onto each video frame. In actuality, there is a slight
-    %mismatch that occurs every 30 minutes (540000 mocap frames) that is
-    %corrected for below. You can just start with the first 540000 frames,
-    %where this isn't an issue. 
-    mocapstruct_caff = load('caff.mat');
-    
-    % change the videodirectory
-    mocapstruct_caff.cameradirectory = INSERT VIDEODIRECTORY HERE
-    %this selects the base frames to start visualization from
-    base = 1500000;            
-    %this defines a compensation for an odd shift that occurs every 540000
-    %(30 minutes)
-    %frames that I am still looking into. The data is synchronized enough
-    %to use, or you can just start with the first 30 minutes
-   offset = 780*floor(base./540000); 
-   % this is a visualization of the movies. 
+v = VideoWriter(strcat(savedirectory,'movie example'),'MPEG-4');
+open(v)
+
+filename = '\\olveczky.rc.fas.harvard.edu\Jesse\Data\Motionanalysis_captures\Vicon8\20170821\Preprocessed\social_2.mat';
+mocapstruct_social = load(filename);
+
+%load in the motion capture struct the field 'matched frames aligned'
+%defines the corresponding videoframe for each motion capture frame.
+%The video is at 50 Hz MOCAP at 300 Hz, so multiple motion capture
+%frames match onto each video frame. In actuality, there is a slight
+%mismatch that occurs every 30 minutes (540000 mocap frames) that is
+%corrected for below. You can just start with the first 540000 frames,
+%where this isn't an issue.
+mocapstruct_caff = load('caff.mat');
+
+camerause = 2;
+% change the videodirectory
+mocapstruct_caff.cameradirectory{camerause} = INSERT VIDEODIRECTORY HERE
+%this selects the base frames to start visualization from
+base = 1500000;
+%this defines a compensation for an odd shift that occurs every 540000
+%(30 minutes)
+%frames that I am still looking into. The data is synchronized enough
+%to use, or you can just start with the first 30 minutes
+offset = 10*floor(base./540000);
+% this is a visualization of the movies.
 M= animate_markers_aligned_fullmovie_syncedvideo(mocapstruct_caff,-offset +(base:10:(base+10000)),...
-    mocapstruct_caff.cameradirectory,mocapstruct_caff.matched_frames_aligned(base:10:(base+10000)));
+    mocapstruct_caff.cameradirectory,mocapstruct_caff.matched_frames_aligned{camerause}(base:10:(base+10000)));
 
-
-
-
-   writeVideo(v,M)
-                                    close(v)
+writeVideo(v,M)
+close(v)
                 
+
+
+
 
 %% also save an accelerated video
 M_an = animate_markers_aligned_fullmovie(mocapstruct_social,modular_cluster_properties_social.clustering_inds_agg{2}((1:150:end)));
@@ -126,6 +124,7 @@ caffdata.mocap_struct.move_frames = 2:size(caffdata.mocap_struct.aligned_mean_po
 [modular_cluster_properties_caff] = get_modularclustproperties(caffdata.mocap_struct);
 %look at cluster 2 - the spine, head and hips
 cluster_pick =2;
+cluster_pick = 
 %add the features to the cluster -- this splices and hi-passes all the data
 %together around th
  [modular_cluster_properties_caff2] = get_clustering_features(caffdata.mocap_struct,modular_cluster_properties_caff,cluster_pick) ;

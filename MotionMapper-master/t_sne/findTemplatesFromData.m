@@ -46,8 +46,11 @@ function [signalData,signalAmps] = findTemplatesFromData(...
     for j=1:N;
         
         amps = signalAmps(vals == j);
-        
-        idx2 = randperm(length(templates{j}(:,1)),numInGroup(j));
+    
+        % JT: sampling with replacement to handle the case where we want K samples from a group but we only found N < K samples
+        % in our training set
+        %idx2 = randperm(length(templates{j}(:,1)),numInGroup(j));
+        idx2=datasample(length(templates{j}(:,1)),numInGroup(j),'Replace',true);
         selectedData(cumSumGroupVals(j)+1:cumSumGroupVals(j+1),:) = templates{j}(idx2,:);
         selectedAmps(cumSumGroupVals(j)+1:cumSumGroupVals(j+1)) = amps(idx2);
         

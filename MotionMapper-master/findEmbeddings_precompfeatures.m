@@ -1,5 +1,5 @@
 function [zValues,outputStatistics] = ...
-      findEmbeddings(projections,trainingData,trainingEmbedding,parameters,useEuclideanDistance)
+      findEmbeddings_precompfeatures(projections,trainingData,trainingEmbedding,parameters,useEuclideanDistance)
 %findEmbeddings finds the optimal embedding of a data set into a previously
 %found t-SNE embedding
 %
@@ -22,6 +22,7 @@ function [zValues,outputStatistics] = ...
 %     Princeton University
 
     % JT: adding euclidean distance
+    % JDM: adding option for other features
     if ~exist('useEuclideanDistance','var')
         useEuclideanDistance=false;
     end
@@ -41,26 +42,28 @@ function [zValues,outputStatistics] = ...
     
     
     d = length(trainingData(1,:));
-    numModes = parameters.pcaModes;
-    numPeriods = parameters.numPeriods;
+  %  numModes = parameters.pcaModes;
+   % numPeriods = parameters.numPeriods;
     
-    if d == numModes*numPeriods
-        
-        data = projections;
-        data(:) = bsxfun(@rdivide,data,sum(data,2));
-        
-        minT = 1 ./ parameters.maxF;
-        maxT = 1 ./ parameters.minF;
-        Ts = minT.*2.^((0:numPeriods-1).*log(maxT/minT)/(log(2)*(numPeriods-1)));
-        f = fliplr(1./Ts);
-        
-    else
-        
-        fprintf(1,'Finding Wavelets\n');
-        [data,f] = findWavelets(projections,numModes,parameters);
-        data(:) = bsxfun(@rdivide,data,sum(data,2));
-        
-    end
+%     if d == numModes*numPeriods
+%         
+%         data(:) = bsxfun(@rdivide,data,sum(data,2));
+%         
+%         minT = 1 ./ parameters.maxF;
+%         maxT = 1 ./ parameters.minF;
+%         Ts = minT.*2.^((0:numPeriods-1).*log(maxT/minT)/(log(2)*(numPeriods-1)));
+%         f = fliplr(1./Ts);
+%         
+%     else
+%         
+%         fprintf(1,'Finding Wavelets\n');
+%         [data,f] = findWavelets(projections,numModes,parameters);
+%         data(:) = bsxfun(@rdivide,data,sum(data,2));
+%         
+%     end
+    
+            data = projections;
+
     
     fprintf(1,'Finding Embeddings\n');
     [zValues,zCosts,zGuesses,inConvHull,meanMax,exitFlags] = ...
@@ -70,8 +73,8 @@ function [zValues,outputStatistics] = ...
     
                                 
     outputStatistics.zCosts = zCosts;
-    outputStatistics.f = f;
-    outputStatistics.numModes = numModes;
+%    outputStatistics.f = f;
+    %outputStatistics.numModes = numModes;
     outputStatistics.zGuesses = zGuesses;
     outputStatistics.inConvHull = inConvHull;
     outputStatistics.meanMax = meanMax;

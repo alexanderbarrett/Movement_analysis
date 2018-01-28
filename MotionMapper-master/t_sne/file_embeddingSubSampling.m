@@ -1,5 +1,5 @@
 function [yData,signalData,signalIdx,signalAmps] = ...
-                file_embeddingSubSampling(projectionFile,parameters)
+                file_embeddingSubSampling(flyName,parameters)
 %file_embeddingSubSampling finds the potential training set contributions 
 %from a single file (called by runEmbeddingSubSampling.m)
 %
@@ -28,10 +28,12 @@ function [yData,signalData,signalIdx,signalAmps] = ...
     addpath(genpath('./wavelet/'));
     
     fprintf(1,'\t Loading Projections\n');
-    load(projectionFile,'projections');
+    % JT: loading fly data by name instead of by path 
+    %load(projectionFile,'projections');
+    %projections=prepFlyData(flyName);
+    data=loadHighVarData(flyName);
     
-    
-    N = length(projections(:,1));
+    N = length(data(:,1));
     numModes = parameters.pcaModes;
     skipLength = floor(N / numPoints);
     if skipLength == 0
@@ -42,7 +44,8 @@ function [yData,signalData,signalIdx,signalAmps] = ...
     signalIdx = firstFrame:skipLength:(firstFrame + (numPoints-1)*skipLength);
     
     fprintf(1,'\t Calculating Wavelets\n');
-    [data,~] = findWavelets(projections,numModes,parameters);
+    % JT: loading fly data by name instead of by path 
+    %[data,~] = findWavelets(projections,numModes,parameters);
     amps = sum(data,2);
     
     signalData = bsxfun(@rdivide,data(signalIdx,:),amps(signalIdx));

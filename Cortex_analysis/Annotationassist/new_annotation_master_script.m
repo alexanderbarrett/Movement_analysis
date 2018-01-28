@@ -11,14 +11,17 @@ conditionname = 'Vicon8_prelesion';
 conditionnumber = 1;
 
 % for the specific file
-subset_of_frames_to_annotate = 1:3.5*10^6; %subset of well tracked frames to annotate
+subset_of_frames_to_annotate = 1:2.5*10^6; %subset of well tracked frames to annotate
 gapfill_number = 20;
 
 %% can load in multiple filenames
 %annotation_mocapname =
 %'Y:\Jesse\Data\Motionanalysis_captures\Vicon8\20170822\Preprocessed\nolj_Recording_day7_caffeine1_nolj.mat';.
 %% FIRST FILE
-annotation_filename = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon8\20170822\Preprocessed\nolj_Recording_day7_caffeine1_nolj_handannotation_JDM.mat';
+annotation_folder = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon8\20170822\Preprocessed\';
+
+annotation_filenames = {'nolj_Recording_day7_caffeine1_nolj_handannotation_JDM.mat'};
+annotation_filenumber = {1};
 
 %% SECOND GROUP OF FILES
 annotation_folder = 'Y:\Jesse\Data\Motionanalysis_captures\Vicon8\20170822\Preprocessed\';
@@ -81,13 +84,10 @@ subset_of_frames_annotated = unique(subset_of_frames_annotated);
 descriptor_struct = get_mocap_files_table(conditionnumber,ratname);
  [~,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] = get_mocap_files_shortened(descriptor_struct,mocapmasterdirectory);
  [mocapstruct_all] = preprocess_mocap_data_2(mocapfilearray,mocapfilestruct,descriptor_struct,mocapfiletimes,0,0,[],mocapvideodirectory,0);
-ML_features = get_supervised_features(mocapstruct_all,mocapstruct_all.modular_cluster_properties.clustering_inds_agg{2},2,ratname,'Vicon8_prelesion',0);
+ML_features = get_supervised_features(mocapstruct_all,mocapstruct_all.modular_cluster_properties.clustering_inds_agg{2},2,ratname,'Vicon8_caff',0);
 %the frames are the intersection of those that are returned from clipping
 %and in the cluster of markers
 frames_with_goodtracking = intersect(mocapstruct_all.modular_cluster_properties.clustering_inds_agg{2},mocapstruct_all.modular_cluster_properties.clipped_index{2});
-
-
-
 
 %% LOAD IN THE ANNOTATION
 % fill the gaps in the structure
@@ -122,7 +122,7 @@ fieldnames_beh(unique_predictions+1)
 
 %% VISUALIZE AN EXAMPLE BEHAVIOR
 animate_markers_aligned_fullmovie(mocapstruct_all,fulloutput_annotation_struct.(chosenbehavior)(1:10:end)')
-chosenbehavior = 'RArmGroom';
+chosenbehavior = 'FaceWipes';
 
 candidate_frames_vec = (find(candidate_frames==find(strcmp(fieldnames_beh ,chosenbehavior)==1)-1));
 candidate_frame_predicted = setxor(frames_with_goodtracking(candidate_frames_vec),...
@@ -141,11 +141,88 @@ animate_markers_aligned_fullmovie(mocapstruct_all,(candidate_frame_predicted(1:1
 %Need to refactor this
 colors_plot = hsv(80);
 colors_plot = colorcube(80)./2+lines(80)./2;
-subset_of_points_to_plot = 1:100:100*30000;
+subset_of_points_to_plot2 = 1:100:100*6000;
+subset_of_points_to_plot = 1:100:100*20000;
+subset_of_points_to_plot= 1:100:100*15000;
 
-%
-mappedX_dyn_angle =  tsne(cat(2,ML_features.spectrogram_pcs_trunk_angle(subset_of_points_to_plot,1:15)));
-mappedX_dyn_head=  tsne(cat(2,ML_features.spectrogram_pcs_head_angle(subset_of_points_to_plot,1:15)));
+%tsnehere =  mapped_jt_alldynamics_angles;
+tsnehere = zValues;
+[xx,yy,density] = findPointDensity( tsnehere,2,[2001 2001],[-150 150]);
+figure(573)
+subplot(1,2,1)
+imagesc(density)
+colorbar
+subplot(1,2,2)
+inv_density = 1./density;
+inv_density(inv_density>10^6) = 10^10;
+L=watershed(inv_density);
+imagesc(L)
+conn_watershed = bwconncomp(L);
+   stats = regionprops(conn_watershed,'convexhull');
+
+% % 
+% thresh = 1*10^(-4);
+%  density(density<thresh) = 0;
+%  imagesc(density)
+% [conn_watershed] = bwconncomp(density);
+%    stats = regionprops(conn_watershed,'convexhull');
+
+
+example_inds = cell(1,conn_watershed.NumObjects);
+example_inds_exp = cell(1,conn_watershed.NumObjects);
+cluster_num = zeros(1,conn_watershed.NumObjects);
+cluster_mean_length = zeros(4,conn_watershed.NumObjects);
+
+
+for jj = 2:conn_watershed.NumObjects
+   [example_inds_x,example_inds_y]  = ind2sub(conn_watershed.ImageSize,conn_watershed.PixelIdxList{jj} );
+   verts_x = (round(stats(jj).ConvexHull(:,1)));
+verts_x(verts_x<1) = 1;
+   verts_x(verts_x>numel(xx)) =numel(xx);
+   
+    verts_y = (round(stats(jj).ConvexHull(:,2)));
+   verts_y(verts_y<1) = 1;
+   verts_y(verts_y>numel(yy)) =numel(yy);
+   %% get the points in the watershed polygon
+   IN = inpolygon(tsnehere(:,1),tsnehere(:,2),...
+        xx(verts_x) ,yy(verts_y));
+    
+    %% get the bout characteristics
+example_inds{jj} = subset_of_points_to_plot(find(IN));
+temp = (unique(bsxfun(@plus,example_inds{jj}',-10:10)));
+temp(temp<1) = 1;
+temp(temp>max(subset_of_points_to_plot)) = max(subset_of_points_to_plot);
+test = zeros(1,max(subset_of_points_to_plot));
+test(temp) = 1;
+characteristics = bwconncomp(test);
+cluster_num(jj) = characteristics.NumObjects;
+cluster_mean_length(:,jj) = [characteristics.NumObjects mean(cellfun(@numel,characteristics.PixelIdxList)) ...
+    median(cellfun(@numel,characteristics.PixelIdxList)) std(cellfun(@numel,characteristics.PixelIdxList))];
+
+
+temp = (unique(bsxfun(@plus,example_inds{jj}',-20:20)));
+temp(temp<1) = 1;
+temp(temp>numel(frames_with_goodtracking)) = numel(frames_with_goodtracking);
+temp = frames_with_goodtracking(temp);
+
+example_inds_exp{jj} = temp(1:10:end);
+end
+
+plot_pose_mosaic(mocapstruct_all,example_inds_exp)
+M = plot_multi_clusters(mocapstruct_all,example_inds_exp,50);
+
+indshere = frames_with_goodtracking(unique(bsxfun(@plus,example_inds{20}',-50:50)));
+animate_markers_aligned_fullmovie(mocapstruct_all,example_inds_exp{180} );
+
+
+  v = VideoWriter(strcat('aggregate_movie_4'),'MPEG-4');
+    open(v)
+    writeVideo(v, M)
+    close(v)
+
+
+
+
 
 mappedX_joint =  tsne(cat(2,ML_features.pose_score(subset_of_points_to_plot,1:10),ML_features.appearance_features_agg_score_whitened(subset_of_points_to_plot,1:6),...
     ML_features.spectrogram_pcs_trunk_angle(subset_of_points_to_plot,1:15),ML_features.spectrogram_pcs_head_angle(subset_of_points_to_plot,1:15)));
@@ -154,6 +231,103 @@ mappedX = tsne(cat(2,ML_features.pose_score(subset_of_points_to_plot,1:10),ML_fe
 
 mappedX_japose = tsne(ML_features.ja_dyadic_spectrograms(subset_of_points_to_plot,1:10));
 
+ mapped_trunk = tsne(cat(2,ML_features.spectrogram_pcs_wl_trunk_angle(subset_of_points_to_plot2,1:10)));
+   
+   mapped_jt_dynamics = tsne(cat(2,ML_features.spectrogram_pcs_wl_head_angle(subset_of_points_to_plot,1:15),ML_features.spectrogram_pcs_wl_trunk_angle(subset_of_points_to_plot,1:15)));
+   
+   % mapped_all_dynamics = tsne(cat(2,ML_features.spectrogram_pcs_wl_head_angle(subset_of_points_to_plot,1:15),...
+   %     ML_features.spectrogram_pcs_wl_trunk_angle(subset_of_points_to_plot,1:15)));
+  
+ mapped_head = tsne(cat(2,ML_features.spectrogram_pcs_wl_head_angle(subset_of_points_to_plot2,1:15)));
+ 
+      mappedX_dyn_angle_t =  tsne(cat(2,ML_features.spectrogram_pcs_trunk_angle(subset_of_points_to_plot2,1:15)));
+    
+        mapped_jt_alldynamics = tsne(cat(2,ML_features.spectrogram_pcs_wl_head_angle(subset_of_points_to_plot2,1:15),...
+          ML_features.spectrogram_pcs_wl_trunk_angle(subset_of_points_to_plot2,1:15),...
+          ML_features.spectrogram_pcs_head_angle(subset_of_points_to_plot2,1:15),...
+          ML_features.spectrogram_pcs_trunk_angle(subset_of_points_to_plot2,1:15)));
+      
+        % not great
+      mapped_jt_alldynamics_angles_pose = tsne(cat(2,ML_features.spectrogram_pcs_wl_head_angle(subset_of_points_to_plot,1:15),...
+          ML_features.spectrogram_pcs_wl_trunk_angle(subset_of_points_to_plot,1:15),...
+          ML_features.ja_dyadic_spectrograms(subset_of_points_to_plot,1:10),...
+      ML_features.pose_score(subset_of_points_to_plot,1:10),...
+      ML_features.appearance_features_agg_score_whitened(subset_of_points_to_plot,1:6),...
+          ML_features.spectrogram_pcs_head_angle(subset_of_points_to_plot,1:15),...
+          ML_features.spectrogram_pcs_trunk_angle(subset_of_points_to_plot,1:15)));
+      
+           % will try - worked well before
+        mapped_jt_alldynamics_angles_pose_noxyz = tsne(cat(2,ML_features.spectrogram_pcs_wl_head_angle(subset_of_points_to_plot,1:15),...
+          ML_features.spectrogram_pcs_wl_trunk_angle(subset_of_points_to_plot,1:15),...
+          ML_features.ja_dyadic_spectrograms(subset_of_points_to_plot,1:10),...
+      ML_features.pose_score(subset_of_points_to_plot,1:10),...
+      ML_features.appearance_features_agg_score_whitened(subset_of_points_to_plot,1:6)...
+        ));
+
+    
+  % okay
+   mapped_jt_alldynamics_angles_only = tsne(cat(2,ML_features.spectrogram_pcs_wl_head_angle(subset_of_points_to_plot,1:15),...
+          ML_features.spectrogram_pcs_wl_trunk_angle(subset_of_points_to_plot,1:15),...
+          ML_features.ja_dyadic_spectrograms(subset_of_points_to_plot,1:10),...
+          ML_features.appearance_features_agg_score_whitened(subset_of_points_to_plot,1:6) )...      
+          );
+   
+mappedX_dyn_head=  tsne(cat(2,ML_features.spectrogram_pcs_head_angle(subset_of_points_to_plot,1:15),ML_features.spectrogram_pcs_trunk_angle(subset_of_points_to_plot,1:15)));
+
+    
+    
+      %% try the embedding
+      subset_of_points_to_plot_tsne = 1:100:100*10000;
+subset_of_points_to_plot_em = 1:1:100*10000;
+      subset_of_points_to_plot_emreal = 1:10:100*10000;
+
+      candidate_features = cat(2,ML_features.spectrogram_pcs_wl_head_angle(subset_of_points_to_plot_em,1:15),...
+          ML_features.spectrogram_pcs_wl_trunk_angle(subset_of_points_to_plot_em,1:15),...
+          ML_features.ja_dyadic_spectrograms(subset_of_points_to_plot_em,1:10),...
+      ML_features.pose_score(subset_of_points_to_plot_em,1:10),...
+      ML_features.appearance_features_agg_score_whitened(subset_of_points_to_plot_em,1:6) );
+      parameters = [];
+
+            mappedX_eucold = tsne(candidate_features(subset_of_points_to_plot_tsne,:));
+mappedX_KL =  run_tSne(candidate_features(subset_of_points_to_plot_tsne,:),parameters,[]);
+    mappedX_eucnew =run_tSne(candidate_features(subset_of_points_to_plot_tsne,:),parameters,'true');
+    
+
+[zValues,outputStatistics] = ...
+    findEmbeddings_precompfeatures(candidate_features(subset_of_points_to_plot_emreal,:),...
+      candidate_features(subset_of_points_to_plot_tsne,:),...
+      mappedX_eucnew,parameters,'true');
+
+  zvel = sqrt(sum(abs(diff(zValues)).^2,2));
+ zvel  = conv( zvel ,ones(1,3)./3,'same');
+ 
+  figure(97)
+    subplot(2,1,1)
+
+  plot(zvel)
+  subplot(2,1,2)
+  
+  hist(zvel,logspace(-4,4,1000))
+  set(gca,'XScale','log')
+  
+  badvals = find(zvel>10);
+    goodvals = find(zvel<1);
+
+  figure(101)
+  plot(zValues(badvals,1),zValues(badvals,2),'b+')
+  hold on
+    plot(zValues(goodvals,1),zValues(goodvals,2),'r+')
+hold off
+  
+  
+  framesanim = frames_with_goodtracking(subset_of_points_to_plot_emreal(badvals));
+framesanim = unique(bsxfun(@plus,framesanim',-20:20));
+  animate_markers_aligned_fullmovie(mocapstruct_all,framesanim(1:10:end) );
+  
+figure(99)
+plot3(ML_features.spectrogram_pcs_wl_head_angle(subset_of_points_to_plot,1),...
+    ML_features.spectrogram_pcs_wl_head_angle(subset_of_points_to_plot,2),...
+    ML_features.spectrogram_pcs_wl_head_angle(subset_of_points_to_plot,3),'+')
 
 %get a tsne if desired
 %mappedX=  tsne(cat(2,ML_features.spectrogram_pcs_head_angle(subset_of_points_to_plot,1:10),...
@@ -162,7 +336,7 @@ mappedX_japose = tsne(ML_features.ja_dyadic_spectrograms(subset_of_points_to_plo
 legendnames = cell(1,0);
 
 for mm =1:max(candidate_frames)
-       [ framesubset_cand,framesubset_tsne,~] = intersect(subset_of_points_to_plot,find(candidate_frames == mm));
+       [ framesubset_cand,framesubset_tsne,~] = intersect(subset_of_points_to_plot_emreal,find(candidate_frames == mm));
        
    if numel(framesubset_cand)
 figure(559)
@@ -176,21 +350,27 @@ hold on
    end
 end
 
-for mm =1:max(candidate_frames)
-   [ framesubset_cand,framesubset_tsne,~] = intersect(subset_of_points_to_plot,find(candidate_frames == mm));
+for mm =1:max((candidate_frames))
+   [ framesubset_cand,framesubset_tsne,~] = intersect(subset_of_points_to_plot_emreal,find(candidate_frames == mm));
 
    if numel(framesubset_cand)
 figure(559)
 plot3(ML_features.pose_score(framesubset_cand,1),ML_features.pose_score(framesubset_cand,2),...
-    ML_features.pose_score(framesubset_cand,3),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
-% 
+   ML_features.pose_score(framesubset_cand,3),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
+
 % plot3(ML_features.ja_dyadic_spectrograms(framesubset_cand,1),ML_features.ja_dyadic_spectrograms(framesubset_cand,2),...
 %     ML_features.ja_dyadic_spectrograms(framesubset_cand,3),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
 
+%plot3(ML_features.spectrogram_pcs_trunk_angle(framesubset_cand,1),ML_features.spectrogram_pcs_trunk_angle(framesubset_cand,2),...
+ %   ML_features.spectrogram_pcs_trunk_angle(framesubset_cand,3),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
+
+
 %ML_features.ja_dyadic_spectrograms;
 
-%figure(572)
+figure(572)
 %plot(mappedX_dyn_angle(framesubset_tsne,1),mappedX_dyn_angle(framesubset_tsne,2),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
+%plot(mappedX_dyn_head(framesubset_tsne,1),mappedX_dyn_head(framesubset_tsne,2),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
+plot( zValues(framesubset_tsne,1), zValues(framesubset_tsne,2),'o','MarkerEdgeColor','none','MarkerSize',2,'MarkerFaceColor',colors_plot(mm,:))
 
 
    end

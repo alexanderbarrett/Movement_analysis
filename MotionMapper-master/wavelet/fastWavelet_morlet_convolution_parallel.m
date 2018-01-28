@@ -1,4 +1,4 @@
-function [amp,W] = fastWavelet_morlet_convolution_parallel(x,f,omega0,dt)
+function [amp,W,scales] = fastWavelet_morlet_convolution_parallel(x,f,omega0,dt)
 %fastWavelet_morlet_convolution_parallel finds the Morlet wavelet transform
 %resulting from a time series
 %
@@ -52,7 +52,7 @@ function [amp,W] = fastWavelet_morlet_convolution_parallel(x,f,omega0,dt)
         idx = (M/2+1):(M/2+M);
     end
     
-    if nargout == 2
+    if nargout > 1
         W = zeros(size(amp));
         test2 = true;
     else
@@ -72,5 +72,4 @@ function [amp,W] = fastWavelet_morlet_convolution_parallel(x,f,omega0,dt)
             W(i,:) = q;
         end
     end
-    
     

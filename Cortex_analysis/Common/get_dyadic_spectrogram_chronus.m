@@ -1,7 +1,7 @@
 function [dyad_out,fr,time_clustering] = get_dyadic_spectrogram_chronus(agg_features,opts)
 
 %% set the number of voices/octaves for the GMM
-numVoices = 10;
+numVoices = 8;
 numOctave = 5;
 
 %% set wavelet properties
@@ -47,11 +47,19 @@ for k=1:size(agg_features,1)
         %      freq_range_here
         if sum(agg_features(k,:),2) ~=0
             
+            params=[];
             params.tapers = [3 5];
-             params.fpass = [1:10];
-            params.fpass = freq_range_here;
-        [S,fr_temp,time_clustering,] = mtspecgramc(agg_features(k,:),[ opts.clustering_window./opts.fps  opts.clustering_overlap./opts.fps],params);
-        
+           %  params.fpass = [1:10];
+           params.fpass = freq_range_here;
+            params.Fs = 300;
+          % params.fpass = [1 10];
+          S_full = [];
+          for ll = 1:numel(freq_range_here)-1
+               params.fpass =  [freq_range_here(ll) freq_range_here(ll+1)];
+        [S,time_clustering,fr_temp] = mtspecgramc(agg_features(k,:),[ opts.clustering_window./opts.fps  opts.clustering_window./opts.fps],params);
+        size(S)
+        S_full = cat(2,S_full,S);
+          end
         [~,fr_temp,~,dyadic_spectrograms_temp] = spectrogram(agg_features_here(:,jj),opts.clustering_window,...
           opts.clustering_overlap,1:30,opts.fps);
         

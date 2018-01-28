@@ -1,6 +1,6 @@
-function M = animate_markers_aligned_fullmovie(mocapstruct,frame_inds)
+function plot_frame(mocapstruct,frame_inds,h)
 %matlab_fr = 10;
-h=figure(370)
+%h=figure(370)
 % frame_inds = time_ordering_fulltrace{jjj}(1:matlab_fr:min(frames_use,numel(time_ordering_fulltrace{jjj})));
 
 %M{jjj} = movie;
@@ -103,15 +103,15 @@ for lk = reshape(frame_inds,1,[])%1:10:10000
     end
 
     
-       % title(strcat('  Frame: ' ,datestr(base_time+lk./(mocapstruct.fps*60*60*24))),'Color','w')
+        %title(strcat('  Frame: ' ,datestr(base_time+lk./(mocapstruct.fps*60*60*24))),'Color','w')
     
     
-    drawnow 
-    hold off
+   %drawnow
+    %hold off
   
     frame_last = lk;
     
-        M(find(frame_inds == lk)) =  getframe(gcf);
+      %  M(find(frame_inds == lk)) =  getframe(gcf);
 
     %clf
 end

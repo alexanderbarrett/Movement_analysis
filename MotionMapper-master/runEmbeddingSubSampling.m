@@ -1,5 +1,5 @@
-function [trainingSetData,trainingSetAmps,projectionFiles] = ...
-            runEmbeddingSubSampling(projectionDirectory,parameters)
+function [trainingSetData,trainingSetAmps] = ...
+            runEmbeddingSubSampling(flyNames,parameters)
 %runEmbeddingSubSampling generates a training set given a set of .mat files
 %
 %   Input variables:
@@ -21,54 +21,42 @@ function [trainingSetData,trainingSetAmps,projectionFiles] = ...
 % (C) Gordon J. Berman, 2014
 %     Princeton University
     
-    addpath(genpath('./utilities/'));
-    addpath(genpath('./t_sne/'));
     
     if nargin < 2
         parameters = [];
     end
     parameters = setRunParameters(parameters);
     
-    
-    if matlabpool('size') ~= parameters.numProcessors;
-        matlabpool close force
-        if parameters.numProcessors > 1
-            matlabpool(parameters.numProcessors);
-        end
-    end
-    
-    
-    
-    projectionFiles = findAllImagesInFolders(projectionDirectory,'.mat');
+        
     
     N = parameters.trainingSetSize;
-    L = length(projectionFiles);
+    L = length(flyNames);
     numPerDataSet = round(N/L);
     numModes = parameters.pcaModes;
     numPeriods = parameters.numPeriods;
-     
-    trainingSetData = zeros(numPerDataSet*L,numModes*numPeriods);
-    trainingSetAmps = zeros(numPerDataSet*L,1);
     
-    for i=1:L
-        
-        fprintf(1,['Finding training set contributions from data set #' ...
-            num2str(i) '\n']);
-        
-        currentIdx = (1:numPerDataSet) + (i-1)*numPerDataSet;
-        
+    % First gather training set contributions for each file in parallel
+    trainingSetDataPerFile={};
+    trainingSetAmpsPerFile={};
+    parfor i=1:L
+        % JT: loading fly data by name instead of by path 
         [yData,signalData,signalAmps,~] = ...
-                file_embeddingSubSampling(projectionFiles{i},parameters);
+                file_embeddingSubSampling(flyNames{i},parameters);
             
-        [trainingSetData(currentIdx,:),trainingSetAmps(currentIdx)] = ...
+        [trainingSetDataPerFile{i},trainingSetAmpsPerFile{i}] = ...
             findTemplatesFromData(signalData,yData,signalAmps,...
                                 numPerDataSet,parameters);
             
             
     end
+
+    trainingSetData = zeros(numPerDataSet*L,numModes*numPeriods);
+    trainingSetAmps = zeros(numPerDataSet*L,1);
     
-    
-    
-    if parameters.numProcessors > 1  && parameters.closeMatPool
-        matlabpool close
+    % Now combine contributions from each file
+    for i=1:L
+        currentIdx = (1:numPerDataSet) + (i-1)*numPerDataSet;
+        trainingSetData(currentIdx,:)=trainingSetDataPerFile{i};
+        trainingSetAmps(currentIdx)=trainingSetAmpsPerFile{i};
     end
+    

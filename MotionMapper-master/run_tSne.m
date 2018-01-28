@@ -1,4 +1,4 @@
-function [yData,betas,P,errors] = run_tSne(data,parameters)
+function [yData,betas,P,errors] = run_tSne(data,parameters,useEuclideanDistance)
 %run_tSne runs the t-SNE algorithm on an array of normalized wavelet amplitudes
 %
 %   Input variables:
@@ -18,10 +18,12 @@ function [yData,betas,P,errors] = run_tSne(data,parameters)
 %
 % (C) Gordon J. Berman, 2014
 %     Princeton University
+    
+    % JT: adding euclidean distance
+    if ~exist('useEuclideanDistance','var')
+        useEuclideanDistance=false;
+    end
 
-
-    addpath(genpath('./utilities/'));
-    addpath(genpath('./t_sne/'));
     
     if nargin < 2
         parameters = [];
@@ -36,7 +38,12 @@ function [yData,betas,P,errors] = run_tSne(data,parameters)
     end
     
     fprintf(1,'Finding Distances\n');
-    D = findKLDivergences(data);
+    % JT: adding euclidean distance
+    if useEuclideanDistance
+        D = squareform(pdist(data));
+    else
+        D = findKLDivergences(data);
+    end
     
     
     fprintf(1,'Computing t-SNE\n');

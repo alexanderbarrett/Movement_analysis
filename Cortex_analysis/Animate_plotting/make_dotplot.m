@@ -1,4 +1,4 @@
-function make_dotplot(annotation_vec,fieldnames_beh,ML_features)
+function make_dotplot(annotation_vec,fieldnames_beh,ML_features,beh_subset)
 feature_list = {'LGroom','high_rear','rel_velocity_head_abs_100','rel_velocity_head_abs_33',...
     'absolute_velocity_trunk_abs_100','rel_velocity_hipL_abs_100','rel_velocity_hipR_abs_100','rel_velocity_trunk_abs_100'};
 feature_names = {'LGroom','high rear','Head Vel','Head Velocity (faster)',...
@@ -23,7 +23,8 @@ for ll = 1:numel(feature_list)
 
   end
 % loop over all behaviors and maek the plot
-behavior_ids = unique(annotation_vec);
+behavior_ids = 0:max(annotation_vec);%unique(annotation_vec);
+
 behavior_ids(isnan(behavior_ids)) = [];
 num_beh = numel(behavior_ids);
 cmap = jet(100);
@@ -32,7 +33,14 @@ beh_val = zeros(num_beh,numel(feature_list));
 beh_std = zeros(num_beh,numel(feature_list));
 beh_color = zeros(num_beh,numel(feature_list));
 
-for mm = 1:num_beh
+
+if nargin == 4
+    num_beh = numel(beh_subset);
+else
+    beh_subset = 1:num_beh;
+end
+
+for mm = beh_subset
       axisnames{1,size(axisnames,2)+1} = fieldnames_beh{behavior_ids(mm)+1};
     behaviors_inds = find(annotation_vec == behavior_ids(mm));
     for ll = 1:numel(feature_list)
@@ -67,11 +75,12 @@ beh_color = round(scaled_beh_std*10);
 
     figure (111)
 
-for mm = 1:num_beh
+for mm = beh_subset
     for ll = 1:numel(feature_list)
         colorhere = 'k';%cmap(beh_color(mm,ll),:);
-        plot(ll,mm,'o','MarkerSize',(scaled_beh_val(mm,ll)),'MarkerFaceColor',colorhere,'MarkerEdgeColor',colorhere)
-
+        if ~isnan(scaled_beh_val(mm,ll))
+        plot(ll,find(beh_subset==mm),'o','MarkerSize',(scaled_beh_val(mm,ll)),'MarkerFaceColor',colorhere,'MarkerEdgeColor',colorhere)
+        end
 %plot(ll,mm,'o','MarkerSize',beh_mult(ll)*(beh_val(mm,ll))./2+1,'MarkerFaceColor','k','MarkerEdgeColor','k')
 %,cmap(beh_color+1,:)
 %cmap(beh_color+1,:)

@@ -1,6 +1,6 @@
 function [zValues,zCosts,zGuesses,inConvHull,meanMax,exitFlags] = ...
     findTDistributedProjections_fmin(data,trainingData,...
-                                        trainingEmbedding,parameters)                                    
+                                        trainingEmbedding,parameters,useEuclideanDistance)                                    
 %findTDistributedProjections_fmin is called by runEmbbedings to find the
 %optimal embeddings of a set of wavelet amplitudes into a previously
 %defined t-SNE embedding
@@ -36,13 +36,21 @@ function [zValues,zCosts,zGuesses,inConvHull,meanMax,exitFlags] = ...
         tCosts = zeros(size(idx));
         current_poly = false(length(idx),1);
         
-        D2 = findListKLDivergences(currentData,trainingData);
+        % JT: adding euclidean distance
+        if useEuclideanDistance
+            D2 = pdist2(currentData,trainingData);
+        else
+            D2 = findListKLDivergences(currentData,trainingData);
+        end
         current_meanMax = zeros(length(idx),1);
         
         parfor i=1:length(idx)
             
             if mod(i,readout) == 0
                 fprintf(1,'\t\t Image #%5i\n',i);
+            end
+            if mod(i-1,1000) == 0
+                fprintf(1,'\t\t i=%d of %d\n',i,length(idx));
             end
             
             [~,p] = returnCorrectSigma_sparse(D2(i,:),perplexity,sigmaTolerance,maxNeighbors);
@@ -54,7 +62,7 @@ function [zValues,zCosts,zGuesses,inConvHull,meanMax,exitFlags] = ...
             guesses = [a;trainingEmbedding(maxIdx,:)];
             
             b = zeros(2,2);
-            c = zeros(2,1)
+            c = zeros(2,1);
             flags = zeros(2,1);
             
             q = convhull(z);

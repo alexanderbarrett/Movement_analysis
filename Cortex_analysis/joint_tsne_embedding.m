@@ -21,9 +21,9 @@ conditionname3 = 'Vicon8_amph';
 conditionnumber3 = 7;
 %% Load files
 
-descriptor_struct = get_mocap_files_table(conditionnumbers(1),ratname);
+descriptor_struct = get_mocap_files_table(5,ratname);
  [~,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] = get_mocap_files_shortened(descriptor_struct,mocapmasterdirectory);
- [mocapstruct_caff] = preprocess_mocap_data_2(mocapfilearray,mocapfilestruct,descriptor_struct,mocapfiletimes,0,0,[],mocapvideodirectory,0);
+ [mocapstruct_caff] = preprocess_mocap_data_2(mocapfilearray,mocapfilestruct,descriptor_struct,mocapfiletimes,0,1,[],mocapvideodirectory,1);
 
  descriptor_struct = get_mocap_files_table(conditionnumbers(2),ratname);
  [~,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] = get_mocap_files_shortened(descriptor_struct,mocapmasterdirectory);

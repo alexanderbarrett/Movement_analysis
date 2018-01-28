@@ -123,12 +123,12 @@ caffdata.mocap_struct.move_frames = 2:size(caffdata.mocap_struct.aligned_mean_po
 %get the indicies of the frames when all the markers are tracked
 [modular_cluster_properties_caff] = get_modularclustproperties(caffdata.mocap_struct);
 %look at cluster 2 - the spine, head and hips
-cluster_pick =2;
-cluster_pick = 
+cluster_pick =2; %spine,head,hips
+cluster_pick = 8; % all markers
+caffdata.mocap_struct.markernames(caffdata.mocap_struct.modular_cluster_properties{cluster_pick})
 %add the features to the cluster -- this splices and hi-passes all the data
 %together around th
- [modular_cluster_properties_caff2] = get_clustering_features(caffdata.mocap_struct,modular_cluster_properties_caff,cluster_pick) ;
 
-animate_markers_aligned_fullmovie(caffdata.mocap_struct,modular_cluster_properties_caff.clustering_inds_agg{cluster_pick}((1:20:end)));
+animate_markers_aligned_fullmovie(caffdata.mocap_struct,caffdata.mocap_struct.modular_cluster_properties.clustering_inds_agg{cluster_pick}((1:20:end)));
 %
 

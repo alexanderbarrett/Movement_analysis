@@ -72,7 +72,7 @@ end
 
    fprintf('macros save name %s \n',macro_save_name)
 if (exist(macro_save_name,'file') && ~overwrite_macro_flag)
-    fprintf('loading preprocessed mocapstruct from file  \n')
+    fprintf('loading from file  \n')
 mocap_struct = load(macro_save_name);
 if (~isfield(mocap_struct,'markernames'))
 mocap_struct = mocap_struct.mocap_struct;

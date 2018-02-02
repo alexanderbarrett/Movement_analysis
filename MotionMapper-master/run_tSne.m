@@ -42,9 +42,13 @@ function [yData,betas,P,errors] = run_tSne(data,parameters,useEuclideanDistance)
     if useEuclideanDistance
         D = squareform(pdist(data));
     else
-        D = findKLDivergences(data);
+      D =   squareform(pdist(data,'squaredeuclidean'));
+          %      D = find_weighted_distance(data);
+
+       % D = findKLDivergences(data);
     end
     
     
     fprintf(1,'Computing t-SNE\n');
+    ydata = fast_tsne(D
     [yData,betas,P,errors] = tsne_d(D,parameters);

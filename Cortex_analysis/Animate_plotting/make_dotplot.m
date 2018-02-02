@@ -7,11 +7,6 @@ feature_names = {'LGroom','high rear','Head Vel','Head Velocity (faster)',...
 % get the max val and std of the chosen features for z scoring
 feature_means = zeros(1,numel(feature_list)); 
 feature_stds = zeros(1,numel(feature_list)); 
-axisnames = cell(1,0);
-
-
-beh_mult = 4*ones(1,numel(feature_list));
-beh_mult(4:end) = 8;
 
 for ll = 1:numel(feature_list)
     if numel(size(ML_features.(feature_list{ll}))==2) && ...
@@ -39,10 +34,14 @@ if nargin == 4
 else
     beh_subset = 1:num_beh;
 end
+beh_subset = reshape(beh_subset,1,[]);
+
+axisnames = cell(1,0);
 
 for mm = beh_subset
-      axisnames{1,size(axisnames,2)+1} = fieldnames_beh{behavior_ids(mm)+1};
-    behaviors_inds = find(annotation_vec == behavior_ids(mm));
+    size(axisnames,2);
+      axisnames{1,size(axisnames,2)+1} = fieldnames_beh{(mm)+1};
+    behaviors_inds = find(annotation_vec == (mm));
     for ll = 1:numel(feature_list)
         
 beh_val(mm,ll) = (nanmean(ML_features.(feature_list{ll})(1,behaviors_inds))-feature_means(ll))./feature_stds(ll);

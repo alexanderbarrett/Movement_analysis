@@ -147,10 +147,10 @@ end
 
 feat_pcs = V;
 wavelet_coeffs = U;
-
-figure(667)
-plot3(wavelet_coeffs(1:50:500000,4),wavelet_coeffs(1:50:500000,2),wavelet_coeffs(1:50:500000,3),'+')
-% weight pca modes to prevent noise from overwhelming GMM
+% 
+% figure(667)
+% plot3(wavelet_coeffs(1:50:500000,4),wavelet_coeffs(1:50:500000,2),wavelet_coeffs(1:50:500000,3),'+')
+% % weight pca modes to prevent noise from overwhelming GMM
 
 
 % plots wavelet feature space sorted into clusters

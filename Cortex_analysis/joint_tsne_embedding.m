@@ -6,13 +6,14 @@ mocapmasterdirectory = 'Y:\Jesse\Data\Motionanalysis_captures\';
 %% set parameters
 %V8
 ratname = 'JDM25';
-conditionnumbers = [1,10];
+conditionnumbers = [1,10]; %pre/post
+%conditionnumbers = [4,12]; %pre/post task
 
 
 
 ratname = 'Vicon8';
 conditionname = 'Vicon8_caff';
-conditionnumber = 6;
+conditionnumbers = [6 1 7];
 
 conditionname2 = 'Vicon8_prelesion';
 conditionnumber2 = 1;
@@ -21,41 +22,56 @@ conditionname3 = 'Vicon8_amph';
 conditionnumber3 = 7;
 %% Load files
 
-descriptor_struct = get_mocap_files_table(5,ratname);
+descriptor_struct = get_mocap_files_table(conditionnumbers(1),ratname);
  [~,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] = get_mocap_files_shortened(descriptor_struct,mocapmasterdirectory);
- [mocapstruct_caff] = preprocess_mocap_data_2(mocapfilearray,mocapfilestruct,descriptor_struct,mocapfiletimes,0,1,[],mocapvideodirectory,1);
+ [mocapstruct_caff] = preprocess_mocap_data_2(mocapfilearray,mocapfilestruct,descriptor_struct,mocapfiletimes,0,0,[],mocapvideodirectory,1);
 
  descriptor_struct = get_mocap_files_table(conditionnumbers(2),ratname);
  [~,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] = get_mocap_files_shortened(descriptor_struct,mocapmasterdirectory);
- [mocapstruct_prel] = preprocess_mocap_data_2(mocapfilearray,mocapfilestruct,descriptor_struct,mocapfiletimes,0,0,[],mocapvideodirectory,0);
+ [mocapstruct_prel] = preprocess_mocap_data_2(mocapfilearray,mocapfilestruct,descriptor_struct,mocapfiletimes,0,0,[],mocapvideodirectory,1);
  
   descriptor_struct = get_mocap_files_table(conditionnumber3,ratname);
  [~,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] = get_mocap_files_shortened(descriptor_struct,mocapmasterdirectory);
  [mocapstruct_amph] = preprocess_mocap_data_2(mocapfilearray,mocapfilestruct,descriptor_struct,mocapfiletimes,0,0,[],mocapvideodirectory,0);
  
  
-  ML_features_caff = get_supervised_features(mocapstruct_caff,mocapstruct_caff.modular_cluster_properties.clustering_inds_agg{2},2,ratname,'jdm25_caff',0);
-ML_features_prel = get_supervised_features(mocapstruct_prel,mocapstruct_prel.modular_cluster_properties.clustering_inds_agg{2},2,ratname,'jdm25_prel',0);
+  ML_features_caff = get_supervised_features(mocapstruct_caff,mocapstruct_caff.modular_cluster_properties.clustering_inds_agg{2},2,ratname,'jdm25_preltask',0);
+ML_features_prel = get_supervised_features(mocapstruct_prel,mocapstruct_prel.modular_cluster_properties.clustering_inds_agg{2},2,ratname,'jdm25_posttask',0);
 ML_features_amph = get_supervised_features(mocapstruct_amph,mocapstruct_amph.modular_cluster_properties.clustering_inds_agg{2},2,ratname,'Vicon8_amph',0);
 
 frames_with_goodtracking_caff = intersect(mocapstruct_caff.modular_cluster_properties.clustering_inds_agg{2},mocapstruct_caff.modular_cluster_properties.clipped_index{2});
 frames_with_goodtracking_prel = intersect(mocapstruct_prel.modular_cluster_properties.clustering_inds_agg{2},mocapstruct_prel.modular_cluster_properties.clipped_index{2});
 frames_with_goodtracking_amph = intersect(mocapstruct_amph.modular_cluster_properties.clustering_inds_agg{2},mocapstruct_amph.modular_cluster_properties.clipped_index{2});
 
-[frames_with_goodtracking_moving_caff,ml_subset_moving_caff ] = intersect(mocapstruct_caff.move_frames,frames_with_goodtracking_caff);
-[frames_with_goodtracking_moving_prel,ml_subset_moving_prel ] = intersect(mocapstruct_prel.move_frames,frames_with_goodtracking_prel);
+
+%% restrict to moving frames (optional)
+[frames_with_goodtracking_caff,~,ml_subset_moving_caff ] = intersect(mocapstruct_caff.move_frames,frames_with_goodtracking_caff);
+[frames_with_goodtracking_prel,~,ml_subset_moving_prel ] = intersect(mocapstruct_prel.move_frames,frames_with_goodtracking_prel);
+[frames_with_goodtracking_amph,~,ml_subset_moving_amph ] = intersect(mocapstruct_amph.move_frames,frames_with_goodtracking_amph);
+
+move_flag = 1;
 
 %% Load annotations for each (Optional)
 
 %%  run tsne on the individual files
-  subset_of_points_to_plot_tsne = 1:100:100*20000;
+  subset_of_points_to_plot_tsne = 1:75:100*25000;
     subset_of_points_to_plot_embed = 1:10:100*24000;
-
+    
+  tsne_features = {%'ja_dyadic_spectrograms','appearance_features_agg_score_whitened','pose_score',...
+      'spectrogram_pcs_wl_head_angle','spectrogram_pcs_wl_trunk_angle',...     
+      'absolute_velocity_trunk_abs_100','absolute_std_velocity_trunk_abs_100',...
+    'rel_velocity_hipR_abs_100','rel_velocity_hipL_abs_100','rel_std_velocity_hipR_abs_100','rel_std_velocity_hipL_abs_100',...
+   'rel_velocity_head_abs_100','rel_std_velocity_head_abs_100','rel_velocity_trunk_abs_100','rel_std_velocity_trunk_abs_100',...
+   'rel_velocity_trunk_z_100','rel_velocity_hipR_abs_33','rel_velocity_hipL_abs_33','rel_std_velocity_hipR_abs_33','rel_std_velocity_hipL_abs_33',...
+   'rel_velocity_head_abs_33','rel_std_velocity_head_abs_33','rel_velocity_trunk_abs_33','rel_std_velocity_trunk_abs_33',...
+   'rel_velocity_trunk_z_33','absolute_velocity_trunk_abs_33','absolute_std_velocity_trunk_abs_33',...
+   'rel_velocity_hipR_abs_300','rel_velocity_hipL_abs_300','rel_std_velocity_hipR_abs_300','rel_std_velocity_hipL_abs_300',...
+   'rel_velocity_head_abs_300','rel_std_velocity_head_abs_300','rel_velocity_trunk_abs_300','rel_std_velocity_trunk_abs_300',...
+   'rel_velocity_trunk_z_300','absolute_velocity_trunk_abs_300','absolute_std_velocity_trunk_abs_300','rel_velocity_head_z_100','rel_std_velocity_head_z_100'};
+  num_feat = [15,15];%[10,6,10,15,15];
   
-  tsne_features = {'spectrogram_pcs_wl_head_angle','spectrogram_pcs_wl_trunk_angle',...
-      'ja_dyadic_spectrograms','appearance_features_agg_score_whitened'};
-  num_feat = [10,10,10,6];
-  
+  % 'ja_dyadic_spectrograms','appearance_features_agg_score_whitened','pose_score',...
+  %,10,6
   candidate_features_caff_em = [];
     candidate_features_prel_em = [];
         candidate_features_amph_em = [];
@@ -66,16 +82,28 @@ frames_with_goodtracking_amph = intersect(mocapstruct_amph.modular_cluster_prope
         candidate_features_amph = [];
 
 for mm = 1:numel(tsne_features)
-      
-      %      candidate_features_caff = cat(2,candidate_features_caff ,ML_features_caff.(tsne_features{mm})((subset_of_points_to_plot_tsne),1:num_feat(mm)));
-   candidate_features_amph = cat(2,candidate_features_amph ,ML_features_amph.(tsne_features{mm})(subset_of_points_to_plot_tsne,1:num_feat(mm)));
+      if mm>numel(num_feat)
+          num_feat(mm) = 1;
+      end
+      if ~move_flag
+          candidate_features_amph = cat(2,candidate_features_amph ,ML_features_amph.(tsne_features{mm})(subset_of_points_to_plot_tsne,1:num_feat(mm)));
            candidate_features_caff = cat(2,candidate_features_caff ,ML_features_caff.(tsne_features{mm})((subset_of_points_to_plot_tsne),1:num_feat(mm)));
+                      candidate_features_prel = cat(2,candidate_features_prel ,ML_features_prel.(tsne_features{mm})((subset_of_points_to_plot_tsne),1:num_feat(mm)));
+      else
+     %      candidate_features_amph = cat(2,candidate_features_amph ,ML_features_amph.(tsne_features{mm})(ml_subset_moving_amph(subset_of_points_to_plot_tsne),1:num_feat(mm)));
+           candidate_features_caff = cat(2,candidate_features_caff ,ML_features_caff.(tsne_features{mm})(ml_subset_moving_caff(subset_of_points_to_plot_tsne),1:num_feat(mm)));
+               candidate_features_prel = cat(2,candidate_features_prel ,ML_features_prel.(tsne_features{mm})(ml_subset_moving_prel(subset_of_points_to_plot_tsne),1:num_feat(mm)));
+
+      end
+      %      candidate_features_caff = cat(2,candidate_features_caff ,ML_features_caff.(tsne_features{mm})((subset_of_points_to_plot_tsne),1:num_feat(mm)));
+ 
      %candidate_features_prel = cat(2,candidate_features_prel ,ML_features_prel.(tsne_features{mm})(ml_subset_moving_prel(subset_of_points_to_plot_tsne),1:num_feat(mm)));
-  
-     candidate_features_caff_em = cat(2,candidate_features_caff_em ,ML_features_caff.(tsne_features{mm})((subset_of_points_to_plot_embed),1:num_feat(mm)));
-    % candidate_features_prel_em = cat(2,candidate_features_prel_em ,ML_features_prel.(tsne_features{mm})(ml_subset_moving_prel(subset_of_points_to_plot_embed),1:num_feat(mm)));
+  %     candidate_features_prel = cat(2,candidate_features_prel ,ML_features_prel.(tsne_features{mm})((subset_of_points_to_plot_tsne),1:num_feat(mm)));
+
+   %  candidate_features_caff_em = cat(2,candidate_features_caff_em ,ML_features_caff.(tsne_features{mm})((subset_of_points_to_plot_embed),1:num_feat(mm)));
+    % candidate_features_prel_em = cat(2,candidate_features_prel_em ,ML_features_prel.(tsne_features{mm})((subset_of_points_to_plot_embed),1:num_feat(mm)));
       % candidate_features_caff_em = cat(2,candidate_features_caff_em ,ML_features_caff.(tsne_features{mm})((subset_of_points_to_plot_tsne),1:num_feat(mm)));
-      candidate_features_amph_em = cat(2,candidate_features_amph_em ,ML_features_amph.(tsne_features{mm})(subset_of_points_to_plot_embed,1:num_feat(mm)));
+   %   candidate_features_amph_em = cat(2,candidate_features_amph_em ,ML_features_amph.(tsne_features{mm})(subset_of_points_to_plot_embed,1:num_feat(mm)));
 
 end
 
@@ -84,7 +112,7 @@ parameters = [];
   %  mappedX_eucnew_prel =run_tSne(candidate_features_caff(subset_of_points_to_plot_tsne,:),parameters,'true');
 
     %% smooth the tsne maps to sample from the watershed regions probabilistically
-    numtosample = 10000;
+    numtosample = 5000;
 %caff
 % [xx,yy,density_caff] = findPointDensity(mappedX_eucnew_caff,2,[2001 2001],[-150 150]);
 % reshaped_density_caff = reshape(density_caff,1,[]);
@@ -94,84 +122,99 @@ parameters = [];
 % [xx,yy,density_prel] = findPointDensity(mappedX_eucnew_prel,2,[2001 2001],[-150 150]);
 % reshaped_density_prel = reshape(density_prel,1,[]);
 % sampled_prel = randsample(1:numel(reshaped_density_prel),numtosample,'true',reshaped_density_prel);
-inds_caff = randsample(1:numel(subset_of_points_to_plot_tsne),numtosample);
-inds_prel = randsample(1:numel(subset_of_points_to_plot_tsne),numtosample);
-inds_amph = randsample(1:numel(subset_of_points_to_plot_tsne),numtosample);
+inds_caff = 1:numel(subset_of_points_to_plot_tsne);%randsample(1:numel(subset_of_points_to_plot_tsne),numtosample);
+inds_prel = 1:numel(subset_of_points_to_plot_tsne);%randsample(1:numel(subset_of_points_to_plot_tsne),numtosample);
+inds_amph = 1:numel(subset_of_points_to_plot_tsne);%randsample(1:numel(subset_of_points_to_plot_tsne),numtosample);
 
 %%
-jt_features = real(cat(1,candidate_features_caff(inds_caff,:),candidate_features_amph(inds_amph,:)));%candidate_features_amph(inds_amph,:)));%);%candidate_features_amph(inds_amph,:)); %,candidate_features_prel(inds_prel,:)
-    mappedX_eucnew_joint =run_tSne(jt_features,parameters,'true');
+caff_feat = bsxfun(@rdivide,bsxfun(@minus,candidate_features_caff(inds_caff,:),...
+    nanmean(candidate_features_caff(inds_caff,:),1)),nanstd(candidate_features_caff(inds_caff,:),[],1));
+
+prel_feat = bsxfun(@rdivide,bsxfun(@minus,candidate_features_prel(inds_prel,:),...
+    nanmean(candidate_features_prel(inds_prel,:),1)),nanstd(candidate_features_prel(inds_prel,:),[],1));
+
+amph_feat = bsxfun(@rdivide,bsxfun(@minus,candidate_features_amph(inds_amph,:),...
+    nanmean(candidate_features_amph(inds_amph,:),1)),nanstd(candidate_features_amph(inds_amph,:),[],1));
+
+jt_features = real(cat(1,caff_feat,prel_feat));%candidate_features_amph(inds_amph,:)));%);%candidate_features_amph(inds_amph,:)); %,candidate_features_prel(inds_prel,:)
+  %,amph_feat
+
+numDims = 2; pcaDims = 30; perplexity = 30; theta = .5; alg = 'svd';
+fprintf('starting tsne \n')
+  tic
+       mappedX_eucnew_joint =  fast_tsne(jt_features, numDims, pcaDims, perplexity, theta, alg);
+        toc
   
 %candidate_features_prel_em,
 
 [zValues,outputStatistics] = ...
-    findEmbeddings_precompfeatures(real(cat(1,candidate_features_caff_em,candidate_features_amph_em)),...
+    findEmbeddings_precompfeatures(real(cat(1,candidate_features_caff_em,candidate_features_prel_em)),...
       jt_features,...
       mappedX_eucnew_joint,parameters,'true');
     
  
   
-    
-h=figure(605)
-plot(mappedX_eucnew_joint(1:numel(inds_caff),1),mappedX_eucnew_joint(1:numel(inds_caff),2),'b+')
-   hold on
-   plot(mappedX_eucnew_joint(numel(inds_caff)+1:(numel(inds_caff)+numel(inds_amph)),1),...
-       mappedX_eucnew_joint(numel(inds_caff)+1:(numel(inds_caff)+numel(inds_amph)),2),'r+')
-   
-   plot(mappedX_eucnew_joint((1+numel(inds_caff)+numel(inds_amph)):end,1),...
-       mappedX_eucnew_joint(((numel(inds_caff)+numel(inds_amph)+1):end),2),'g+')
-hold off
-
   
-h= figure(605)
-   hold on
-plot(zValues(1:numel(subset_of_points_to_plot_embed),1),zValues(1:numel(subset_of_points_to_plot_embed),2),'bo','MarkerSize',1)
-   plot(zValues(numel(subset_of_points_to_plot_embed)+1:2*numel(subset_of_points_to_plot_embed),1),...
-       zValues(numel(subset_of_points_to_plot_embed)+1:2*numel(subset_of_points_to_plot_embed),2),'ro','MarkerSize',1)
-     plot(zValues(2*numel(subset_of_points_to_plot_embed)+1:end,1),...
-       zValues(2*numel(subset_of_points_to_plot_embed)+1:end,2),'go','MarkerSize',1)
-hold off
+  
+  
+    
+%     
+% h=figure(605)
+% plot(mappedX_eucnew_joint(1:numel(inds_caff),1),mappedX_eucnew_joint(1:numel(inds_caff),2),'b+')
+%    hold on
+%    plot(mappedX_eucnew_joint(numel(inds_caff)+1:(numel(inds_caff)+numel(inds_amph)),1),...
+%        mappedX_eucnew_joint(numel(inds_caff)+1:(numel(inds_caff)+numel(inds_amph)),2),'r+')
+%    
+%    plot(mappedX_eucnew_joint((1+numel(inds_caff)+numel(inds_amph)):end,1),...
+%        mappedX_eucnew_joint(((numel(inds_caff)+numel(inds_amph)+1):end),2),'g+')
+% hold off
+% 
+%   
+% h= figure(605)
+%    hold on
+% plot(zValues(1:numel(subset_of_points_to_plot_embed),1),zValues(1:numel(subset_of_points_to_plot_embed),2),'bo','MarkerSize',1)
+% 
+%    plot(zValues(numel(subset_of_points_to_plot_embed)+1:2*numel(subset_of_points_to_plot_embed),1),...
+%        zValues(numel(subset_of_points_to_plot_embed)+1:2*numel(subset_of_points_to_plot_embed),2),'ro','MarkerSize',1)
+%    %  plot(zValues(2*numel(subset_of_points_to_plot_embed)+1:end,1),...
+%     %   zValues(2*numel(subset_of_points_to_plot_embed)+1:end,2),'go','MarkerSize',1)
+% hold off
 
 
 %% track switching
 
-[x, y] = getline(h);
-  IN = inpolygon(zValues(:,1),zValues(:,2),...
-        x ,y);
   %  good_track_switch = {frames_with_goodtracking_caff,frames_with_goodtracking_prel ,frames_with_goodtracking_amph};
    % cond_identifier = cat(1,ones(numel(subset_of_points_to_plot_embed),1),2*ones(numel(subset_of_points_to_plot_embed),1),...
    %     3*ones(numel(subset_of_points_to_plot_embed),1));
    %  cond_identifier = cat(1,ones(numel(subset_of_points_to_plot_embed),1),...
     %    3*ones(numel(subset_of_points_to_plot_embed),1));
-            good_track_switch = {frames_with_goodtracking_caff,[],frames_with_goodtracking_amph};
+         %   good_track_switch = {frames_with_goodtracking_caff,[],frames_with_goodtracking_amph};
 
-      %  good_track_switch = {frames_with_goodtracking_moving_caff,frames_with_goodtracking_moving_prel };
- cond_identifier = cat(1,ones(numel(subset_of_points_to_plot_embed),1),...
-        3*ones(numel(subset_of_points_to_plot_embed),1));
+     good_track_switch = {frames_with_goodtracking_caff,frames_with_goodtracking_prel,[]};
+ cond_identifier = cat(1,ones(numel(subset_of_points_to_plot_tsne),1),...
+       2*ones(numel(subset_of_points_to_plot_tsne),1));
     
-    
-    beh_list = cell(1,3);
-    for kk = [1 3]
-    [~,ia] = intersect(find(cond_identifier==kk),find(IN));
-    ia = subset_of_points_to_plot_embed(ia);
-     beh_list{kk} = sort(reshape(unique(rectify_inds(bsxfun(@plus,good_track_switch{kk}(ia)',-10:10),max(good_track_switch{kk}))),1,[]),'ascend');    
-    end
-    close 370
-h3=figure(370)
-    set(h3,'Color','k')
+   
+h=figure(605)
+plot(mappedX_eucnew_joint(find(cond_identifier==1),1),mappedX_eucnew_joint(find(cond_identifier==1),2),'b+')
+   hold on
+   plot(mappedX_eucnew_joint(find(cond_identifier==2),1),...
+       mappedX_eucnew_joint(find(cond_identifier==2),2),'r+')
+   
+   %plot(mappedX_eucnew_joint((1+numel(inds_caff)+numel(inds_amph)):end,1),...
+   %    mappedX_eucnew_joint(((numel(inds_caff)+numel(inds_amph)+1):end),2),'g+')
+hold off
 
-h1 = subplot(1,2,1)
-                    animate_markers_timelapse(mocapstruct_caff,beh_list{1}(1:10:end),h1);
-                    h2 = subplot(1,2,2)
-                    animate_markers_timelapse(mocapstruct_prel,beh_list{2}(1:10:end),h2);
 
-                    animate_markers_timelapse(mocapstruct_amph,beh_list{3}(1:10:end),h2);
-                    
-                    
-          animate_markers_aligned_fullmovie(mocapstruct_prel,beh_list{2}(1:10:end));
 
-          animate_markers_aligned_fullmovie(mocapstruct_caff,beh_list{1}(1:10:end));
-          animate_markers_aligned_fullmovie(mocapstruct_amph,beh_list{3}(1:10:end));
+zValues = mappedX_eucnew_joint;
+
+examine_features(h,zValues,{ml_subset_moving_caff(subset_of_points_to_plot_tsne) ml_subset_moving_prel(subset_of_points_to_plot_tsne)},...
+    cond_identifier,good_track_switch,{mocapstruct_caff,mocapstruct_prel},1)
+
+
+   
+  
 
 
     
@@ -184,7 +227,7 @@ figure(100)
 plot(zValues)
 
 zvel = sqrt(sum(abs(diff(zValues)).^2,2));
- zvel  = conv( zvel ,ones(1,5)./5,'same');
+% zvel  = conv( zvel ,ones(1,5)./5,'same');
  
   figure(97)
     subplot(2,1,1)
@@ -195,8 +238,8 @@ zvel = sqrt(sum(abs(diff(zValues)).^2,2));
   hist(zvel,logspace(-4,4,1000))
   set(gca,'XScale','log')
   
-  badvals = find(zvel>10);
-    goodvals = find(zvel<10);
+  badvals = find(zvel>30);
+    goodvals = find(zvel<30);
 
   figure(101)
   subplot(1,3,1)
@@ -215,7 +258,9 @@ hold off
 num_conditions = 3;
 density_maps = cell(1,num_conditions);
 [xx,yy,density_maps{1}] = findPointDensity(zValues(find(cond_identifier==1),:),2,[1001 1001],[-150 150]);
-[xx,yy,density_maps{2}] = findPointDensity(zValues(intersect(goodvals,find(cond_identifier==2)),:),2,[1001 1001],[-150 150]);
+%[xx,yy,density_maps{2}] = findPointDensity(zValues(intersect(goodvals,find(cond_identifier==2)),:),2,[1001 1001],[-150 150]);
+[xx,yy,density_maps{2}] = findPointDensity(zValues(find(cond_identifier==2),:),2,[1001 1001],[-150 150]);
+
 [xx,yy,density_maps{3}] = findPointDensity(zValues(find(cond_identifier==3),:),2,[1001 1001],[-150 150]);
 
 [xx,yy,density_jt] = findPointDensity(zValues(:,:),2,[1001 1001],[-150 150]);
@@ -284,7 +329,7 @@ end
 hold off
 
  %% clustering
- cond_select = 3;
+ cond_select = 1;
  density_objects = density_cc{cond_select}.NumObjects;
  
 example_inds = cell(1,density_objects);
@@ -393,19 +438,33 @@ L = density_watersheds{cond_select};
 s = regionprops(L, 'Centroid');
 hold on
 ind = 0;
+Lnew = L;
 for k = sorted_clust_ind'
     ind = ind+1;
-          L(density_cc{cond_select}.PixelIdxList{k}) = ind ;
+          Lnew(density_cc{cond_select}.PixelIdxList{k}) = ind ;
 end
 
       figure(486)
-   imagesc(L)
-   ind = 0;
+         subplot(1,2,1)
+   imagesc(Lnew)
+   
+   colormap(parula)
+   subplot(1,2,2)
+   imagesc(density_watersheds{cond_select})
 
-for k = sorted_clust_ind'
-    ind = ind+1;
-    c = s(k).Centroid;
-    text(c(1), c(2), num2str(ind), ... %sprintf('%d', integer(ind)),
+      ind = 0;
+      s = regionprops(L, 'Centroid');
+
+for k = 1:numel(sorted_clust_ind')
+    
+    c = s(sorted_clust_ind(k)).Centroid;
+                   subplot(1,2,1)
+    text(c(1), c(2), num2str(k), ... %sprintf('%d', integer(ind)),
+        'HorizontalAlignment', 'center', ...
+        'VerticalAlignment', 'middle','Color','white');
+    
+       subplot(1,2,2)
+    text(c(1), c(2), num2str(sorted_clust_ind(k)), ... %sprintf('%d', integer(ind)),
         'HorizontalAlignment', 'center', ...
         'VerticalAlignment', 'middle','Color','white');
 end

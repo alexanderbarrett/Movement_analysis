@@ -1,13 +1,12 @@
 function [candidateframes,score,Mdl_test] = findsimilarframes_mlfeatures_multifeatures(ML_features,labels,framesubset_search,annotation_window)
 
-% 
-% featureuse = cat(2,ML_features.pose_score(:,:),ML_features.trunk_vel(1,:)',ML_features.head_vel(1,:)',ML_features.RGroom(:,1),...
-%    ML_features.absolute_velocity_trunk_abs_100,ML_features.absolute_velocity_trunk_abs_100,...
-%    ML_features.rel_velocity_hipL_abs_100,ML_features.rel_velocity_hipR_abs_100,...
-%    ML_features.rel_velocity_head_abs_100,ML_features.rel_std_velocity_head_abs_100);
-% 
 
-featureuse=[];
+featureuse = cat(2,ML_features.pose_score(:,:),ML_features.trunk_vel(1,:)',ML_features.head_vel(1,:)',ML_features.RGroom(:,1),...
+   ML_features.absolute_velocity_trunk_abs_100,ML_features.absolute_velocity_trunk_abs_100,...
+   ML_features.rel_velocity_hipL_abs_100,ML_features.rel_velocity_hipR_abs_100,...
+   ML_features.rel_velocity_head_abs_100,ML_features.rel_std_velocity_head_abs_100);
+
+
 %% load in features
 [ tsne_features,num_feat]= load_tsne_features('annotation_ii');
     tsnefeat_name = cell(0,1);
@@ -16,19 +15,9 @@ featureuse=[];
               if mm>numel(num_feat)
           num_feat(mm) = 1;
               end
-      feature_temp = ML_features.(tsne_features{mm});
-      
-      %% issue with transposition
-      if size(feature_temp,1)<size(feature_temp,2)
-         feature_temp = feature_temp'; 
-      end
-      
-      %% issue with wavelet sizing
-      if size(feature_temp,1)<numel(ML_features.framelist_true)
-      feature_temp = cat(1,feature_temp,zeros(numel(ML_features.framelist_true)-size(feature_temp,1),size(feature_temp,2)));
-      end
-          
-           featureuse = cat(2,featureuse ,feature_temp(:,1:num_feat(mm)));
+      feature_temp = ML_features.(tsne_features{mm})(:,1:num_feat(mm));
+      if size
+           featureuse = cat(2,featureuse ,ML_features.(tsne_features{mm})(:,1:num_feat(mm)));
         end
          for jj = 1:num_feat(mm)
             tsnefeat_name{end+1} = strcat(tsne_features{mm},'__',num2str(jj));

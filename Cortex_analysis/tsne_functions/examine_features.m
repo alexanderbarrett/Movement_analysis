@@ -1,4 +1,4 @@
-function examine_features(fighandle,zValues,subset_of_points_to_plot,cond_inds,good_tracks,mocapstructs,videoflag)
+function beh_list = examine_features(fighandle,zValues,subset_of_points_to_plot,cond_inds,good_tracks,mocapstructs,videoflag)
   [x, y] = getline(fighandle);
   IN = inpolygon(zValues(:,1),zValues(:,2),...
         x ,y);

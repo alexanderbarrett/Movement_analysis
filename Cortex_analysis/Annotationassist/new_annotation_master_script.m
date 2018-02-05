@@ -11,17 +11,24 @@ annotation_number = 1;
 %JDM25
 ratname = 'JDM25';
      conditionname = 'JDM25_caff';
-     conditionnumber = 5; %1 is pre lesion, 10 is post lesion
+     conditionnumbers = 5; %1 is pre lesion, 10 is post lesion
+     
+    
+     %JDM33
+     ratname = 'JDM33';
+     conditionname = 'JDM25_caff';
+     conditionnumber = [1,5,10]; %1 is pre lesion, 10 is post lesion
+     
 
 annotation_number = 4; % look in the file below to check which file to load in
 
 [fullposture_annotation_struct,fulloutput_annotation_struct,subset_of_frames_annotated] = load_handannotation_files(annotation_number);
 
 %% get files and the machine learning features
-descriptor_struct = get_mocap_files_table(conditionnumber,ratname);
+descriptor_struct = get_mocap_files_table(conditionnumbers(1),ratname);
  [~,mocapfilearray,mocapfilestruct,mocapvideodirectory,mocapfiletimes] = get_mocap_files_shortened(descriptor_struct,mocapmasterdirectory);
  [mocapstruct_all] = preprocess_mocap_data_2(mocapfilearray,mocapfilestruct,descriptor_struct,mocapfiletimes,0,0,[],mocapvideodirectory,1);
-ML_features = get_supervised_features(mocapstruct_all,mocapstruct_all.modular_cluster_properties.clustering_inds_agg{2},2,ratname,'Vicon8_caff',1);
+ML_features = get_supervised_features(mocapstruct_all,mocapstruct_all.modular_cluster_properties.clustering_inds_agg{2},2,ratname,'Vicon8_caff',10,0);
 
 
 %% visualize a chosen behavior (optional)
@@ -80,6 +87,8 @@ fieldnames_beh(unique_predictions+1)
         make_dotplot(    candidate_frames,fieldnames_beh,ML_features,unique_predictions)
                 make_dotplot(    outputvector,fieldnames_beh,ML_features,unique_predictions)
 [agg_dprimes,agg_names] =  get_feature_dprimes(ML_features,outputvector,unique_predictions,fieldnames_beh);
+[transout,statefreq] = compute_transition_matrix(candidate_frames,fieldnames_beh);
+
 
 %% add other functions to compare real and found
 

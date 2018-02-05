@@ -6,10 +6,11 @@ mocapmasterdirectory = 'Y:\Jesse\Data\Motionanalysis_captures\';
 %% set parameters
 %V8
 ratname = 'JDM25';
-conditionnumbers = [1,10]; %pre/post
+conditionnumbers = [1,2]; %pre/post
 %conditionnumbers = [4,12]; %pre/post task
 
-
+ratname = 'JDM33'
+conditionnumbers = [1,5,10]; %pre/post
 
 ratname = 'Vicon8';
 conditionnames = {'Vicon8_caff','Vicon8_prelesion','Vicon8_amph'};
@@ -24,8 +25,8 @@ ML_features = cell(1,numel(conditions_to_run));
 move_flag = 1;
 
 
-overwrite_MLfile = 0;
-overwrite_MLcoeff_run = 1;
+overwrite_MLfile = 1;
+overwrite_MLcoeff_run = 0;
 %% Load files
 for ll =1:numel(conditions_to_run)
     % overwrite coeffs on the first file
@@ -36,6 +37,9 @@ for ll =1:numel(conditions_to_run)
     else
         overwrite_MLcoeff = 0;
     end
+    else
+    overwrite_MLfile = 0;
+            overwrite_MLcoeff = 0;
     end
     
     descriptor_struct = get_mocap_files_table(conditionnumbers(conditions_to_run(ll)),ratname);
@@ -46,6 +50,8 @@ for ll =1:numel(conditions_to_run)
         mocapstruct_array{ll}.modular_cluster_properties.clustering_inds_agg{2},2,ratname,'temp',overwrite_MLfile,overwrite_MLcoeff);
 end
     
+tsnegranularity = 15;
+
 %recompute these 
 condition_inds =  [];
 frames_with_good_tracking = cell(1,numel(conditions_to_run));
@@ -54,8 +60,9 @@ candidate_features = cell(1,numel(conditions_to_run));
 jt_features = [];
 
 %% set tsne parameters
-subset_of_points_to_plot_tsne = 1:75:100*25000;
-[ tsne_features,num_feat]= load_tsne_features('pose_dynamics');
+subset_of_points_to_plot_tsne = 1:tsnegranularity:100*25000;
+
+[ tsne_features,num_feat]= load_tsne_features('annotation_ii');
 numDims = 2; pcaDims = min(30,sum(num_feat)+numel(tsne_features)-numel(num_feat));
 perplexity = 30; theta = .5; alg = 'svd';
 
@@ -70,6 +77,7 @@ for ll =1:numel(conditions_to_run)
           num_feat(mm) = 1;
       end
             candidate_features{ll} = cat(2,candidate_features{ll} ,candidate_features{ll}.(tsne_features{mm})(subset_of_points_to_plot_tsne,1:num_feat(mm)));
+            ml_subset_moving{ll} = 1:size(candidate_features{ll},1);
         end
     else
         [frames_with_good_tracking{ll},~,ml_subset_moving{ll} ] = intersect(mocapstruct_array{ll}.move_frames,frames_with_good_tracking{ll});
@@ -86,8 +94,8 @@ for ll =1:numel(conditions_to_run)
     end
     
     %whiten features
-   % candidate_features{ll} = bsxfun(@rdivide,bsxfun(@minus,candidate_features{ll},...
-      %  nanmean(candidate_features{ll},1)),nanstd(candidate_features{ll},[],1));
+    candidate_features{ll} =bsxfun(@minus,candidate_features{ll},...
+      nanmean(candidate_features{ll},1));
     %aggregate features
     jt_features = cat(1,jt_features,(candidate_features{ll}));
     
@@ -95,14 +103,25 @@ for ll =1:numel(conditions_to_run)
 condition_inds = cat(1,condition_inds,ll*ones(numel(subset_of_points_to_plot_tsne),1));
 end
 
+subset_of_points_to_plot_tsne_move = {ml_subset_moving{1}(subset_of_points_to_plot_tsne)};% ml_subset_moving{2}(subset_of_points_to_plot_tsne)};
+
+% whiten with the std here 
   jt_features = bsxfun(@rdivide,bsxfun(@minus,jt_features,...
       nanmean(jt_features,1)),nanstd(jt_features,[],1));
 
+  figure(98)
+  plot(jt_features(:,2))
+  
 %% start Tsne
 fprintf('starting tsne for %f frames  \n',size(jt_features,1));
 tic
 zValues =  fast_tsne(jt_features, numDims, pcaDims, perplexity, theta, alg);
 toc
+
+zvalues_1_only = fast_tsne(bsxfun(@rdivide,candidate_features{1},nanstd(candidate_features{1})), numDims, pcaDims, perplexity, theta, alg);
+
+h2=figure(608)
+plot(zvalues_1_only(:,1),zvalues_1_only(:,2),'b+')
 
 %% plot the results
 h=figure(605)
@@ -113,8 +132,8 @@ plot(zValues(find(condition_inds==2),1),...
 hold off
 
 
-examine_features(h,zValues,{ml_subset_moving{1}(subset_of_points_to_plot_tsne) ml_subset_moving{2}(subset_of_points_to_plot_tsne)},...
-    condition_inds,frames_with_good_tracking,mocapstruct_array,1)
+beh_list = examine_features(h,zValues,subset_of_points_to_plot_tsne_move,...
+    condition_inds,frames_with_good_tracking,mocapstruct_array,1);
 
 
    
@@ -128,7 +147,7 @@ IN = inpolygon(zValues(:,1),zValues(:,2),...
 
 beh_list = cell(1,3);
 for kk = [1 3]
-    [~,ia] = intersect(find(cond_identifier==kk),find(IN));
+    [~,ia] = intersect(find(condition_inds==kk),find(IN));
     ia = subset_of_points_to_plot_tsne(ia);
     beh_list{kk} = sort(reshape(unique(rectify_inds(bsxfun(@plus,good_track_switch{kk}(ia)',-10:10),max(good_track_switch{kk}))),1,[]),'ascend');
 end
@@ -154,19 +173,24 @@ end
 
 
 %% density, watershed, images
+
+tsnehere =zvalues_1_only;
+%tsnehere = zValues;
+
 density_maps = cell(1,numel(conditions_to_run));
 density_res = 1001;
-density_max = max(zValues(:));
-density_width = 1;
+density_max = max(tsnehere(:));
+density_width = 0.75;
 
+conditions_to_run = 1;
 figure(480)
 for ll =1:numel(conditions_to_run)
-[xx,yy,density_maps{ll}] = findPointDensity(zValues(find(condition_inds==ll),:),density_width,[density_res density_res],[-density_max density_max]);
+[xx,yy,density_maps{ll}] = findPointDensity(tsnehere(find(condition_inds==ll),:),density_width,[density_res density_res],[-density_max density_max]);
 subplot(1,numel(conditions_to_run)+1,ll)
 imagesc(flipud(density_maps{ll}))
 %to try [f,xi] = ksdensity(x)
 end
-[xx,yy,density_jt] = findPointDensity(zValues(:,:),density_width,[density_res density_res],[-density_max density_max]);
+[xx,yy,density_jt] = findPointDensity(tsnehere(:,:),density_width,[density_res density_res],[-density_max density_max]);
 subplot(1,numel(conditions_to_run)+1,numel(conditions_to_run)+1)
 imagesc(flipud(density_jt))
 
@@ -175,11 +199,11 @@ imagesc(flipud(density_jt))
 
 %% now threshold the density maps and apply the watershed
 figure(482)
-% [x,n] = hist(reshape(xcorr2(density_maps{3}),1,[]),1000);
+[x,n] = hist(reshape((density_maps{2}),1,[]),1000);
 loglog(n,x)
 figure(582)
-[x,n] = hist(reshape((density_maps{3}),1,[]),logspace(-5,-3,200));
-[x2,n2] = hist(reshape((density_maps{1}),1,[]),logspace(-5,-3,200));
+[x,n] = hist(reshape((density_maps{1}),1,[]),logspace(-5,-3,200));
+[x2,n2] = hist(reshape((density_maps{2}),1,[]),logspace(-5,-3,200));
 
 loglog(n,x)
 hold on
@@ -187,11 +211,11 @@ loglog(n2,x2,'r')
 hold off
 
 density_thresholds{1} = 3*10^(-5);
-density_thresholds{3} = 3*10^(-5);
+density_thresholds{2} = 3*10^(-5);
 
 
 %figure(490)
-
+num_conditions = numel(conditions_to_run);
 pdf_maps = cell(1,num_conditions);
 density_watersheds = cell(1,num_conditions);
 density_cc = cell(1,num_conditions);
@@ -211,7 +235,7 @@ figure(482)
 subplot(1,3,1)
 imagesc(flipud(density_watersheds{1}))
 subplot(1,3,2)
-imagesc(flipud(density_watersheds{3}))
+imagesc(flipud(density_watersheds{2}))
 
 L = flipud(density_watersheds{cond_select});
 s = regionprops(L, 'Centroid');
@@ -239,13 +263,12 @@ annotation_labels = cell(1,density_objects);
 annotation_labels{1} = 'null';
 
 for ll = 1:num_conditions
-    annotation_vec{ll} = zeros(1, numel(good_track_switch{ll}));
+    annotation_vec{ll} = zeros(1,max(subset_of_points_to_plot_tsne_move{ll}));
 end
 
-tsnehere = zValues;
 
 subset_of_points_to_plot =1:size(tsnehere,1);
-condition_labels = cat(1,ones(1,numel(subset_of_points_to_plot_embed)),3*ones(1,numel(subset_of_points_to_plot_embed)));
+condition_labels = cat(1,ones(1,numel(subset_of_points_to_plot)));%,2*ones(1,numel(subset_of_points_to_plot)));
 
 for jj = 1:density_objects
     [example_inds_x,example_inds_y]  = ind2sub( density_cc{cond_select}.ImageSize,...
@@ -266,35 +289,55 @@ for jj = 1:density_objects
     example_inds{jj} =  find(IN);
     annotation_labels{jj+1} = strcat('cluster ',num2str(jj));
     
-    for ll = 1:3
-        [~,example_inds_cond{jj,ll}] = intersect(find(cond_identifier==ll),example_inds{jj});
-        annotation_vec{ll}(subset_of_points_to_plot_embed(example_inds_cond{jj,ll}))=jj;
+    for ll = 1:num_conditions
+        [~,example_inds_cond{jj,ll}] = intersect(find(condition_inds==ll),example_inds{jj});
+        annotation_vec{ll}(subset_of_points_to_plot_tsne_move{ll}(example_inds_cond{jj,ll}))=jj;
     end
-    number_cond(jj,:) = [numel(example_inds_cond{jj,1}) numel(example_inds_cond{jj,2}) numel(example_inds_cond{jj,3}) jj];
+    %number_cond(jj,:) = [numel(example_inds_cond{jj,1}) numel(example_inds_cond{jj,2})  jj];
     
     
     
     
     if numel(example_inds{jj})
-        temp = rectify_inds(unique(bsxfun(@plus,example_inds{jj},-10:10)),max(subset_of_points_to_plot_embed));
-        test = zeros(1,max(subset_of_points_to_plot_embed));
+        temp = rectify_inds(unique(bsxfun(@plus,example_inds{jj},-10:10)),max(subset_of_points_to_plot_tsne));
+        test = zeros(1,max(subset_of_points_to_plot_tsne));
         test(temp) = 1;
         characteristics = bwconncomp(test);
         cluster_num(jj) = characteristics.NumObjects;
         cluster_mean_length(:,jj) = [characteristics.NumObjects mean(cellfun(@numel,characteristics.PixelIdxList)) ...
             median(cellfun(@numel,characteristics.PixelIdxList)) std(cellfun(@numel,characteristics.PixelIdxList))];
         
-        for kk =1:3
-            temp = (unique(bsxfun(@plus,good_track_switch{kk}(subset_of_points_to_plot_embed(example_inds_cond{jj,kk}))',-10:10)));
+        for kk =1:num_conditions
+            if numel(example_inds_cond{jj,kk})
+            thresh = 2;
+            diff_input = cat(1,0,diff(example_inds_cond{jj,kk}));
+            diff_input(diff_input>thresh) = 0;
+            outputstruct = bwconncomp(diff_input);
+           % indivbouts = cell(1,numel(outputstruct.PixelIdxList));
+            fulloutput = [];
+            for mm = 1:numel(outputstruct.PixelIdxList)
+                fulloutput = cat(2,fulloutput,...
+                    frames_with_good_tracking{kk}(subset_of_points_to_plot_tsne_move{kk}(example_inds_cond{jj,kk}(outputstruct.PixelIdxList{mm}(1)))):...
+                    frames_with_good_tracking{kk}(subset_of_points_to_plot_tsne_move{kk}(example_inds_cond{jj,kk}(outputstruct.PixelIdxList{mm}(end)))));                
+            end
+            %pick up single instances
+              fulloutput = cat(2,fulloutput,frames_with_good_tracking{kk}(subset_of_points_to_plot_tsne_move{kk}(example_inds_cond{jj,kk}(diff_input == 0))));
+            
+            temp = (unique(bsxfun(@plus,fulloutput',-20:20)));
             temp(temp<1) = 1;
             example_inds_cond_video{jj,kk} = temp;
+            else
+                example_inds_cond_video{jj,kk} =[];
+            end
         end
     end
 end
-good_clusters = find(cellfun(@numel,example_inds_cond(:,3))>100)';
+good_clusters = find(cellfun(@numel,example_inds_cond(:,cond_select))>100)';
 %sum()
-make_dotplot(annotation_vec{3},annotation_labels,ML_features_amph,good_clusters)
-
+make_dotplot(annotation_vec{cond_select},annotation_labels,ML_features{cond_select},good_clusters)
+annotation_vec{cond_select}(annotation_vec{cond_select}==0) = [];
+annot_reordered = reorder_annotation_vec(annotation_vec{cond_select},sorted_clust_ind);
+compute_transition_matrix(annot_reordered,annotation_labels)
 
 animate_markers_aligned_fullmovie(mocapstruct_caff,example_inds_cond_video{170,1}(1:10:end));
 animate_markers_aligned_fullmovie(mocapstruct_amph,example_inds_cond_video{170,3}(1:10:end));
@@ -309,7 +352,8 @@ for ll = 1:density_objects %good_clusters %
     mlist = [1:10,17,18];
     allframes = [];
     for jj = mlist
-        allframes =  cat(2,allframes,mocapstruct_amph.markers_aligned_preproc.(mocapstruct_amph.markernames{jj})(example_inds_cond_video{ll,3},:));
+        allframes =  cat(2,allframes,...
+            mocapstruct_array{cond_select}.markers_aligned_preproc.(mocapstruct_array{cond_select}.markernames{jj})(example_inds_cond_video{ll,cond_select},:));
     end
     %   frames_agg{ll} = allframes;
     mean_pose(:,ll) = mean(allframes,1);
@@ -324,43 +368,62 @@ Z = linkage(mean_pose','ward','euclidean');
 c = cluster(Z,'maxclust',15);
 [newind,sorted_clust_ind] = sort(c,'ASCEND');
 %crosstab(c,species)
-dendrogram(Z,0)
+[H,T,outperm] = dendrogram(Z,density_objects);
+xlabel('cluster number (original)')
 
 figure(1111)
+imagesc(pose_dist(outperm,outperm))
 imagesc(pose_dist(sorted_clust_ind,sorted_clust_ind))
-caxis([0 50])
 
-L = density_watersheds{cond_select};
-s = regionprops(L, 'Centroid');
+caxis([0 150])
+sorted_clust_ind= outperm;
+
+L = zeros(size(density_watersheds{cond_select}));
+Lnew = zeros(size(L));
+Lnew2 = (zeros(size(L,1),size(L,2),3));
 hold on
-ind = 0;
-Lnew = L;
-for k = sorted_clust_ind'
-    ind = ind+1;
-    Lnew(density_cc{cond_select}.PixelIdxList{k}) = ind ;
+vv = parula(93);
+for k = 1:numel(sorted_clust_ind)
+    L(density_cc{cond_select}.PixelIdxList{k}) = k;
+end
+for k = 1:numel(sorted_clust_ind)
+    indstorelabel = find(L ==  sorted_clust_ind(k));%density_cc{cond_select}.PixelIdxList{sorted_clust_ind(k)};
+    Lnew(indstorelabel) = (k);
+   % [a,b] = find(Lnew == k);
+    %% all i can say is fuck matlab
+    for zz = 1:numel(a)
+   % Lnew2(a(zz),b(zz),:) =(vv(k,:));
+    end
 end
 
-figure(486)
+figure(487)
 subplot(1,2,1)
-imagesc(Lnew)
+im=imagesc(flipud(Lnew))
+colorbar
 
-colormap(parula)
 subplot(1,2,2)
-imagesc(density_watersheds{cond_select})
+imagesc(flipud(L))
+colorbar
 
 ind = 0;
-s = regionprops(L, 'Centroid');
+s = regionprops(flipud(L), 'Centroid');
+s2 = regionprops(flipud(Lnew), 'Centroid');
 
 for k = 1:numel(sorted_clust_ind')
     
-    c = s(sorted_clust_ind(k)).Centroid;
+    % get the ind of the sorted cluster
+            c = s2((k)).Centroid;
+
     subplot(1,2,1)
-    text(c(1), c(2), num2str(k), ... %sprintf('%d', integer(ind)),
+    text(c(1), c(2), num2str((k)), ... %sprintf('%d', integer(ind)),
         'HorizontalAlignment', 'center', ...
         'VerticalAlignment', 'middle','Color','white');
     
+        c = s((k)).Centroid;
+
+        % give it the sorted label
     subplot(1,2,2)
-    text(c(1), c(2), num2str(sorted_clust_ind(k)), ... %sprintf('%d', integer(ind)),
+    text(c(1), c(2), num2str((k)), ... %sprintf('%d', integer(ind)),
         'HorizontalAlignment', 'center', ...
         'VerticalAlignment', 'middle','Color','white');
 end
@@ -368,10 +431,50 @@ hold off
 textColor = 'white';
 
 
+figure(89)
+hold on
+
+for jj = 1:density_objects
+    [example_inds_x,example_inds_y]  = ind2sub( density_cc{cond_select}.ImageSize,...
+        density_cc{cond_select}.PixelIdxList{jj} );
+    verts_x = (round(density_stats{cond_select}(jj).ConvexHull(:,1)));
+    verts_x(verts_x<1) = 1;
+  verts_x(verts_x>numel(xx)) =numel(xx);
+    
+    verts_y = (round(density_stats{cond_select}(jj).ConvexHull(:,2)));
+    verts_y(verts_y<1) = 1;
+    verts_y(verts_y>numel(yy)) =numel(yy);
+    plot(xx(verts_x),yy(verts_y),'k')
+end
+plot(tsnehere(find(condition_inds==1),1),tsnehere(find(condition_inds==1),2),'b+')
+
+hold off
+
+hold on
+%plot(tsnehere(find(condition_inds==2),1),...
+%    tsnehere(find(condition_inds==2),2),'r+')
+%s2 = regionprops(Lnew, 'Centroid');
+s2 = regionprops(Lnew, 'Centroid');
+
+for k = 1:numel(sorted_clust_ind')
+    
+    % get the ind of the sorted cluster
+            c = s2((k)).Centroid;
+
+    text(xx(floor(c(1))), yy(floor(c(2))), num2str((k)), ... %sprintf('%d', integer(ind)),
+        'HorizontalAlignment', 'center', ...
+        'VerticalAlignment', 'middle','Color','black');
+end
+hold off
 
 
-plot_timelapse_mosaic(mocapstruct_caff,example_inds_cond_video(sorted_clust_ind(1:end),1))
-animate_markers_aligned_fullmovie(mocapstruct_amph,example_inds_cond_video{sorted_clust_ind(111),3}(1:10:end));
+
+showvideo = 1;
+plot_timelapse_mosaic(mocapstruct_array{cond_select},example_inds_cond_video(sorted_clust_ind(1:end),1))
+videodir = 'Y:\Jesse\Data\Motionanalysis_captures\test_clustervideos';
+videotag = 'caff_solo_embed_dense';
+save_clustered_movies(mocapstruct_array{cond_select},example_inds_cond_video(sorted_clust_ind(1:end),1),videodir,videotag)
+animate_markers_aligned_fullmovie(mocapstruct_array{cond_select},example_inds_cond_video{sorted_clust_ind(130),1}(1:10:end));
 
 
 

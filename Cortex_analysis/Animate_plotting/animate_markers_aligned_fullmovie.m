@@ -101,7 +101,7 @@ for lk = reshape(frame_inds,1,[])%1:10:10000
              end
         end
     end
-
+          
     
        % title(strcat('  Frame: ' ,datestr(base_time+lk./(mocapstruct.fps*60*60*24))),'Color','w')
     
